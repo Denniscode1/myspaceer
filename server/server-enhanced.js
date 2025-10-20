@@ -49,6 +49,7 @@ import {
   getAssignmentStats,
   getAvailableSpecialties
 } from './services/doctorAssignmentService.js';
+import { medicalStaffService } from './services/medicalStaffService.js';
 import { getHospitals } from './database-enhanced.js';
 
 // Helper function to get patient contact info
@@ -1783,6 +1784,142 @@ app.get('/api/stats', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to generate statistics'
+    });
+  }
+});
+
+// ====================
+// MEDICAL STAFF ACCESS ENDPOINTS
+// ====================
+
+/**
+ * POST /api/medical-staff/request-access - Request medical staff access credentials
+ */
+app.post('/api/medical-staff/request-access', async (req, res) => {
+  try {
+    const clientIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'];
+    
+    // Validate required fields
+    const requiredFields = ['email', 'role', 'firstName', 'lastName', 'hospitalAffiliation', 'medicalLicense'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+        missing_fields: missingFields
+      });
+    }
+    
+    // Process the access request
+    const result = await medicalStaffService.processAccessRequest(req.body, clientIP);
+    
+    res.status(201).json(result);
+    
+  } catch (error) {
+    console.error('Medical staff access request error:', error);
+    
+    // Handle specific error types
+    if (error.message.includes('Too many requests')) {
+      return res.status(429).json({
+        success: false,
+        message: error.message
+      });
+    }
+    
+    if (error.message.includes('Invalid email')) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process access request. Please try again later.'
+    });
+  }
+});
+
+/**
+ * POST /api/medical-staff/validate-login - Validate medical staff login credentials
+ */
+app.post('/api/medical-staff/validate-login', async (req, res) => {
+  try {
+    const { username, password, role } = req.body;
+    
+    if (!username || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username, password, and role are required'
+      });
+    }
+    
+    const result = await medicalStaffService.validateLogin(username, password, role);
+    
+    if (result.valid) {
+      res.json({
+        success: true,
+        message: 'Login successful',
+        user: result.user
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: result.message
+      });
+    }
+    
+  } catch (error) {
+    console.error('Medical staff login validation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login validation failed. Please try again.'
+    });
+  }
+});
+
+/**
+ * GET /api/medical-staff/stats - Get medical staff service statistics (admin only)
+ */
+app.get('/api/medical-staff/stats', async (req, res) => {
+  try {
+    // In production, you'd want proper admin authentication here
+    const stats = await medicalStaffService.getServiceStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+    
+  } catch (error) {
+    console.error('Medical staff stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve statistics'
+    });
+  }
+});
+
+/**
+ * GET /api/medical-staff/credentials - Get all valid credentials (admin only)
+ */
+app.get('/api/medical-staff/credentials', async (req, res) => {
+  try {
+    // In production, you'd want proper admin authentication here
+    const credentials = await medicalStaffService.getValidCredentials();
+    
+    res.json({
+      success: true,
+      data: credentials,
+      count: credentials.length
+    });
+    
+  } catch (error) {
+    console.error('Medical staff credentials error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve credentials'
     });
   }
 });

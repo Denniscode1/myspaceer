@@ -168,6 +168,123 @@
   --text-muted: #9ca3af;
 }
 
+/* LocationDetector styles */
+.location-detector {
+  margin: 16px 0;
+}
+
+.location-status {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid var(--border-color, #e1e5e9);
+  background: var(--background-light, #f8f9fa);
+}
+
+.location-status.detecting {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #1976d2;
+}
+
+.location-status.success {
+  background: #e8f5e8;
+  border-color: #4caf50;
+  color: #2e7d32;
+}
+
+.location-status.error,
+.location-status.denied {
+  background: #ffebee;
+  border-color: #f44336;
+  color: #c62828;
+}
+
+.status-message {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.location-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light, #f0f2f5);
+}
+
+.location-primary {
+  font-size: 15px;
+  margin-bottom: 4px;
+  color: var(--text-color, #333);
+}
+
+.location-secondary {
+  font-size: 12px;
+  color: var(--text-muted, #6c757d);
+  line-height: 1.4;
+}
+
+.retry-location-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: var(--primary-color, #2196f3);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retry-location-btn:hover {
+  background: var(--primary-dark, #1976d2);
+}
+
+.location-warning {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 13px;
+}
+
+/* Dark theme support for LocationDetector */
+[data-theme="dark"] .location-status {
+  --background-light: #363636;
+  --border-color: #404040;
+  --border-light: #4a4a4a;
+  --text-color: #e5e5e5;
+  --text-muted: #9ca3af;
+  --primary-color: #42a5f5;
+  --primary-dark: #1e88e5;
+}
+
+[data-theme="dark"] .location-status.detecting {
+  background: #1a2332;
+  border-color: #42a5f5;
+  color: #64b5f6;
+}
+
+[data-theme="dark"] .location-status.success {
+  background: #1b2e1b;
+  border-color: #66bb6a;
+  color: #81c784;
+}
+
+[data-theme="dark"] .location-status.error,
+[data-theme="dark"] .location-status.denied {
+  background: #2e1a1a;
+  border-color: #ef5350;
+  color: #e57373;
+}
+
+[data-theme="dark"] .location-warning {
+  background: #2e2416;
+  border-color: #ffc107;
+  color: #ffecb3;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .location-permission-modal {

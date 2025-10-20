@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import geocodingService from '../services/geocodingService.js';
+import './LocationPermission.css';
 
 const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
   const [locationStatus, setLocationStatus] = useState('detecting'); // detecting, granted, denied, error, success
   const [locationData, setLocationData] = useState(null);
   const [error, setError] = useState(null);
   const [isWatchingLocation, setIsWatchingLocation] = useState(false);
+  const [placeName, setPlaceName] = useState(null);
+  const [geoloadingPlaceName, setGeoloadingPlaceName] = useState(false);
 
   const detectLocation = async (highAccuracy = true) => {
     setLocationStatus('detecting');
@@ -64,6 +68,22 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
       locationInfo.inJamaica = inJamaica;
       locationInfo.country = inJamaica ? 'Jamaica' : 'Unknown';
 
+      // Get place name from coordinates
+      setGeoloadingPlaceName(true);
+      try {
+        const place = await geocodingService.getPlaceName(locationInfo.latitude, locationInfo.longitude);
+        setPlaceName(place);
+        locationInfo.placeName = place;
+        locationInfo.shortPlaceName = await geocodingService.getShortPlaceName(locationInfo.latitude, locationInfo.longitude);
+      } catch (geoError) {
+        console.error('Failed to get place name:', geoError);
+        locationInfo.placeName = `${locationInfo.latitude.toFixed(4)}, ${locationInfo.longitude.toFixed(4)}`;
+        locationInfo.shortPlaceName = locationInfo.placeName;
+        setPlaceName(locationInfo.placeName);
+      } finally {
+        setGeoloadingPlaceName(false);
+      }
+
       if (onLocationUpdate) {
         onLocationUpdate(locationInfo);
       }
@@ -110,7 +130,7 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
     if (!navigator.geolocation || isWatchingLocation) return;
 
     const watchId = navigator.geolocation.watchPosition(
-      (position) => {
+      async (position) => {
         const locationInfo = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -122,6 +142,19 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
 
         locationInfo.inJamaica = isLocationInJamaica(locationInfo.latitude, locationInfo.longitude);
         locationInfo.country = locationInfo.inJamaica ? 'Jamaica' : 'Unknown';
+
+        // Get place name for watch position too
+        try {
+          const place = await geocodingService.getPlaceName(locationInfo.latitude, locationInfo.longitude);
+          locationInfo.placeName = place;
+          locationInfo.shortPlaceName = await geocodingService.getShortPlaceName(locationInfo.latitude, locationInfo.longitude);
+          setPlaceName(place);
+        } catch (geoError) {
+          console.error('Failed to get place name for watch position:', geoError);
+          locationInfo.placeName = `${locationInfo.latitude.toFixed(4)}, ${locationInfo.longitude.toFixed(4)}`;
+          locationInfo.shortPlaceName = locationInfo.placeName;
+          setPlaceName(locationInfo.placeName);
+        }
 
         setLocationData(locationInfo);
         setLocationStatus('success');
@@ -199,9 +232,14 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
       case 'error':
         return `❌ Location error: ${error}`;
       case 'success':
+        if (geoloadingPlaceName) {
+          return '📍 Location detected, getting place name...';
+        }
+        const placeInfo = placeName || `${locationData?.latitude.toFixed(4)}, ${locationData?.longitude.toFixed(4)}`;
+        const accuracyInfo = locationData?.accuracy ? ` (±${Math.round(locationData.accuracy)}m)` : '';
         return locationData?.inJamaica 
-          ? `📍 Location detected in Jamaica (±${Math.round(locationData.accuracy)}m accuracy)`
-          : `📍 Location detected (±${Math.round(locationData?.accuracy || 0)}m accuracy)`;
+          ? `📍 ${placeInfo}${accuracyInfo} 🇯🇲`
+          : `📍 ${placeInfo}${accuracyInfo}`;
       default:
         return '❓ Unknown location status';
     }
@@ -237,10 +275,13 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
         
         {locationStatus === 'success' && (
           <div className="location-details">
-            <small>
-              📍 {locationData.latitude.toFixed(4)}, {locationData.longitude.toFixed(4)}
-              {locationData.accuracy && ` (±${Math.round(locationData.accuracy)}m)`}
-              {locationData.inJamaica ? ' 🇯🇲' : ' 🌍'}
+            <div className="location-primary">
+              <strong>📍 {placeName || 'Getting location name...'}</strong>
+              {locationData?.inJamaica ? ' 🇯🇲' : ' 🌍'}
+            </div>
+            <small className="location-secondary">
+              Coordinates: {locationData.latitude.toFixed(4)}, {locationData.longitude.toFixed(4)}
+              {locationData.accuracy && ` (±${Math.round(locationData.accuracy)}m accuracy)`}
             </small>
           </div>
         )}

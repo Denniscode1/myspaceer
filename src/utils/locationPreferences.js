@@ -1,13 +1,20 @@
 // Location permission preference management utilities
 
 export const LocationPreferenceKeys = {
-  PERMISSION_GRANTED: 'locationPermissionGranted'
+  PERMISSION_GRANTED: 'locationPermissionGranted',
+  DISPLAY_FORMAT: 'locationDisplayFormat'
 };
 
 export const LocationPreferenceValues = {
   GRANTED: 'true',
   DENIED: 'false',
   NOT_SET: null
+};
+
+export const LocationDisplayFormat = {
+  PLACE_NAME: 'placeName',
+  COORDINATES: 'coordinates',
+  AUTO: 'auto' // Use place name if available, otherwise coordinates
 };
 
 /**
@@ -46,8 +53,37 @@ export const isNewUser = () => {
   return getLocationPermissionPreference() === null;
 };
 
-// For development/debugging - expose function to clear preferences
+/**
+ * Get location display format preference
+ * @returns {string} Display format preference (placeName, coordinates, or auto)
+ */
+export const getLocationDisplayPreference = () => {
+  const preference = localStorage.getItem(LocationPreferenceKeys.DISPLAY_FORMAT);
+  return preference || LocationDisplayFormat.AUTO; // Default to auto
+};
+
+/**
+ * Set location display format preference
+ * @param {string} format - Display format (placeName, coordinates, or auto)
+ */
+export const setLocationDisplayPreference = (format) => {
+  if (Object.values(LocationDisplayFormat).includes(format)) {
+    localStorage.setItem(LocationPreferenceKeys.DISPLAY_FORMAT, format);
+  }
+};
+
+/**
+ * Clear location display preference
+ */
+export const clearLocationDisplayPreference = () => {
+  localStorage.removeItem(LocationPreferenceKeys.DISPLAY_FORMAT);
+};
+
+// For development/debugging - expose functions to manage preferences
 if (process.env.NODE_ENV === 'development') {
   window.clearLocationPreferences = clearLocationPermissionPreference;
   window.getLocationPreference = getLocationPermissionPreference;
+  window.getLocationDisplayPreference = getLocationDisplayPreference;
+  window.setLocationDisplayPreference = setLocationDisplayPreference;
+  window.clearLocationDisplayPreference = clearLocationDisplayPreference;
 }

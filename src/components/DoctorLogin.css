@@ -170,6 +170,40 @@
   transition: var(--transition-theme, all 0.3s ease);
 }
 
+.access-notice {
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+  margin: 0 0 15px;
+  font-weight: 500;
+}
+
+.request-access-link {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+.request-access-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+}
+
+.security-note {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  display: block;
+  margin-top: 8px;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
   .login-container {

@@ -6,6 +6,7 @@ import ModernDataTable from '../../components/ModernDataTable.jsx';
 import ModernStatsCards from '../../components/ModernStatsCards.jsx';
 import QueueManagement from '../../components/QueueManagement.jsx';
 import TreatedSection from '../../components/TreatedSection.jsx';
+import { getLocationDisplayPreference, LocationDisplayFormat } from '../../utils/locationPreferences.js';
 
 const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoading, onDeletePatient }) => {
   const [activeTab, setActiveTab] = useState('patients');
@@ -54,10 +55,23 @@ const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoa
   };
 
   const formatLocation = (location) => {
-    if (location && location.latitude && location.longitude) {
-      return `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`;
+    if (!location || !location.latitude || !location.longitude) {
+      return 'Unknown';
     }
-    return 'Unknown';
+
+    const displayPreference = getLocationDisplayPreference();
+    const coordinates = `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`;
+    
+    switch (displayPreference) {
+      case LocationDisplayFormat.COORDINATES:
+        return coordinates;
+      case LocationDisplayFormat.PLACE_NAME:
+        return location.placeName || location.shortPlaceName || coordinates;
+      case LocationDisplayFormat.AUTO:
+      default:
+        // Use place name if available, otherwise coordinates
+        return location.placeName || location.shortPlaceName || coordinates;
+    }
   };
 
   const handleDeleteClick = (submission) => {

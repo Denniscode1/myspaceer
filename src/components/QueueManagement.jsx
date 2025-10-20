@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './QueueManagement.css';
 import TreatmentCompletionModal from './TreatmentCompletionModal.jsx';
 import LocationDetector from './LocationDetector.jsx';
+import LocationSettings from './LocationSettings.jsx';
 
 const QueueManagement = ({ user, onNotificationSent }) => {
   const [queueData, setQueueData] = useState([]);
@@ -428,10 +429,22 @@ const QueueManagement = ({ user, onNotificationSent }) => {
           onLocationError={handleLocationError}
         />
         
+        <LocationSettings 
+          onPreferenceChange={(format) => {
+            console.log('Location display preference changed to:', format);
+            // Optionally trigger a refresh of displayed data
+          }}
+        />
+        
         {showLocationDetails && userLocation && (
           <div className="location-details-panel">
             <h4>📊 Location Details</h4>
             <div className="location-info-grid">
+              {userLocation.placeName && (
+                <div className="info-item">
+                  <strong>Location:</strong> {userLocation.placeName}
+                </div>
+              )}
               <div className="info-item">
                 <strong>Coordinates:</strong> {userLocation.latitude.toFixed(6)}, {userLocation.longitude.toFixed(6)}
               </div>

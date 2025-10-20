@@ -29,31 +29,31 @@ const DoctorLogin = ({ onLogin, onCancel }) => {
     setError('');
 
     try {
-      // Simple authentication check - in a real app, this would be an API call
-      const validCredentials = [
-        { username: 'admin', password: 'admin123', role: 'doctor' },
-        { username: 'doctor1', password: 'doctor123', role: 'doctor' },
-        { username: 'nurse1', password: 'nurse123', role: 'nurse' },
-        { username: 'nurse2', password: 'nurse123', role: 'nurse' }
-      ];
-      
-      const validUser = validCredentials.find(user => 
-        user.username === credentials.username && 
-        user.password === credentials.password &&
-        user.role === credentials.role
-      );
-      
-      if (validUser) {
-        onLogin({
+      // Validate credentials with the backend
+      const response = await fetch('/api/medical-staff/validate-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           username: credentials.username,
-          role: credentials.role,
+          password: credentials.password,
+          role: credentials.role
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        onLogin({
+          ...result.user,
           loginTime: new Date().toISOString()
         });
       } else {
-        setError('Invalid credentials or incorrect role selection.');
+        setError(result.message || 'Invalid credentials or access expired.');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError('Login failed. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -147,10 +147,18 @@ const DoctorLogin = ({ onLogin, onCancel }) => {
         </form>
 
         <div className="login-info">
-          <small>
-            <strong>Demo credentials:</strong><br/>
-            Doctor: admin/admin123, doctor1/doctor123<br/>
-            Nurse: nurse1/nurse123, nurse2/nurse123
+          <p className="access-notice">
+            Don't have login credentials?
+          </p>
+          <button 
+            type="button" 
+            className="request-access-link"
+            onClick={() => window.dispatchEvent(new CustomEvent('requestMedicalAccess'))}
+          >
+            📧 Request Medical Staff Access
+          </button>
+          <small className="security-note">
+            🔒 Secure credentials will be sent to your professional email address
           </small>
         </div>
       </div>

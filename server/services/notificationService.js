@@ -509,7 +509,8 @@ export class NotificationService {
       'status_update': `📱 Medical Status Update - Report ${reportId}`,
       'patient_arrived': `✅ Arrival Confirmed - Report ${reportId}`,
       'treatment_started': `🏥 Treatment Started - Report ${reportId}`,
-      'treatment_completed': `✅ Treatment Completed - Report ${reportId}`
+      'treatment_completed': `✅ Treatment Completed - Report ${reportId}`,
+      'medical_staff_credentials': `🔐 MySpaceER Medical Staff Access Granted`
     };
     
     return subjects[notificationType] || `🏥 Emergency Update - Report ${reportId}`;
