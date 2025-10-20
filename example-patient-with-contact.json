@@ -1,0 +1,16 @@
+{
+  "name": "John Doe",
+  "gender": "male",
+  "age_range": "25-34",
+  "incident_type": "motor-vehicle-accident",
+  "incident_description": "Car accident with minor injuries",
+  "patient_status": "conscious",
+  "transportation_mode": "ambulance",
+  
+  "contact_phone": "+1876XXXXXXX",
+  "contact_email": "your.email@gmail.com",
+  
+  "latitude": 18.0179,
+  "longitude": -76.8099,
+  "location_address": "Kingston, Jamaica"
+}

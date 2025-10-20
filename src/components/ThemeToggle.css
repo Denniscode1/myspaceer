@@ -1,0 +1,109 @@
+.theme-toggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50px;
+  transition: background-color 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--color-background-secondary);
+}
+
+.theme-toggle:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle__track {
+  width: 60px;
+  height: 32px;
+  background-color: var(--color-background-secondary);
+  border-radius: 50px;
+  position: relative;
+  border: 2px solid var(--color-border);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle__thumb {
+  width: 28px;
+  height: 28px;
+  background-color: var(--color-background);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .theme-toggle__thumb {
+  transform: translateY(-50%) translateX(2px);
+}
+
+[data-theme="dark"] .theme-toggle__thumb {
+  transform: translateY(-50%) translateX(30px);
+}
+
+.theme-toggle__icon {
+  position: absolute;
+  font-size: 14px;
+  transition: opacity 0.3s ease;
+}
+
+.theme-toggle__icon--sun {
+  opacity: 1;
+}
+
+.theme-toggle__icon--moon {
+  opacity: 0;
+}
+
+[data-theme="dark"] .theme-toggle__icon--sun {
+  opacity: 0;
+}
+
+[data-theme="dark"] .theme-toggle__icon--moon {
+  opacity: 1;
+}
+
+/* Size variations */
+.theme-toggle--small .theme-toggle__track {
+  width: 48px;
+  height: 26px;
+}
+
+.theme-toggle--small .theme-toggle__thumb {
+  width: 22px;
+  height: 22px;
+}
+
+.theme-toggle--small .theme-toggle__icon {
+  font-size: 12px;
+}
+
+[data-theme="dark"] .theme-toggle--small .theme-toggle__thumb {
+  transform: translateY(-50%) translateX(22px);
+}
+
+.theme-toggle--large .theme-toggle__track {
+  width: 72px;
+  height: 38px;
+}
+
+.theme-toggle--large .theme-toggle__thumb {
+  width: 34px;
+  height: 34px;
+}
+
+.theme-toggle--large .theme-toggle__icon {
+  font-size: 16px;
+}
+
+[data-theme="dark"] .theme-toggle--large .theme-toggle__thumb {
+  transform: translateY(-50%) translateX(34px);
+}

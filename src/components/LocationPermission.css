@@ -1,0 +1,198 @@
+/* Location Permission Modal Styles */
+.location-permission-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.location-permission-modal {
+  background: var(--background-color, #ffffff);
+  color: var(--text-color, #333333);
+  border-radius: 16px;
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideInUp 0.4s ease-out;
+  border: 1px solid var(--border-color, #e1e5e9);
+}
+
+.location-permission-header {
+  padding: 24px 24px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color, #e1e5e9);
+}
+
+.location-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.location-permission-header h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--heading-color, #1a1a1a);
+}
+
+.location-permission-content {
+  padding: 24px;
+}
+
+.location-description {
+  font-size: 16px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.location-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.location-benefits li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light, #f0f2f5);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.location-benefits li:last-child {
+  border-bottom: none;
+}
+
+.location-note {
+  background: var(--info-background, #f8f9fa);
+  border: 1px solid var(--info-border, #dee2e6);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.location-permission-actions {
+  padding: 0 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.location-btn {
+  flex: 1;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.location-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.location-permission-footer {
+  padding: 0 24px 24px;
+  text-align: center;
+}
+
+.location-permission-footer small {
+  color: var(--text-muted, #6c757d);
+  font-size: 12px;
+}
+
+/* Loading spinner for location request */
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dark theme support */
+[data-theme="dark"] .location-permission-modal {
+  --background-color: #2b2b2b;
+  --text-color: #e5e5e5;
+  --heading-color: #ffffff;
+  --border-color: #404040;
+  --border-light: #383838;
+  --info-background: #363636;
+  --info-border: #4a4a4a;
+  --text-muted: #9ca3af;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .location-permission-modal {
+    margin: 20px;
+    max-height: calc(100vh - 40px);
+  }
+  
+  .location-permission-header {
+    padding: 20px 20px 16px;
+  }
+  
+  .location-permission-content {
+    padding: 20px;
+  }
+  
+  .location-permission-actions {
+    padding: 0 20px 20px;
+    flex-direction: column;
+  }
+  
+  .location-btn {
+    width: 100%;
+  }
+  
+  .location-permission-footer {
+    padding: 0 20px 20px;
+  }
+}

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Detection Test - MySpaceER</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-align: center;
+        }
+        .status.detecting {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+        }
+        .status.success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid rgba(40, 167, 69, 0.5);
+        }
+        .status.error {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+        }
+        .location-details {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        .detail-value {
+            font-family: monospace;
+        }
+        .button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        .hospital-list {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .hospital-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid rgba(255, 255, 255, 0.3);
+        }
+        .hospital-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .hospital-info {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .jamaica-flag {
+            font-size: 1.5em;
+            margin-left: 10px;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .detecting {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Location Detection Test</h1>
+        <p style="text-align: center; opacity: 0.9;">Testing GPS accuracy for MySpaceER hospital selection</p>
+        
+        <div id="status" class="status detecting">
+            🔍 Initializing location detection...
+        </div>
+        
+        <div style="text-align: center;">
+            <button id="detectBtn" class="button" onclick="detectLocation()">📍 Detect My Location</button>
+            <button id="testBtn" class="button" onclick="testHospitals()" disabled>🏥 Test Hospital Selection</button>
+        </div>
+        
+        <div id="locationDetails" class="location-details" style="display: none;">
+            <h3>📊 Location Details</h3>
+            <div id="locationData"></div>
+        </div>
+        
+        <div id="hospitalList" class="hospital-list" style="display: none;">
+            <h3>🏥 Nearest Hospitals</h3>
+            <div id="hospitalData"></div>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Important Notes:</strong><br>
+            • Allow location access when prompted<br>
+            • HTTPS required for high-accuracy GPS<br>
+            • Works best outdoors or near windows<br>
+            • Must be physically in Jamaica for accurate results
+        </div>
+    </div>
+
+    <script>
+        let currentLocation = null;
+        const statusEl = document.getElementById('status');
+        const locationDetailsEl = document.getElementById('locationDetails');
+        const hospitalListEl = document.getElementById('hospitalList');
+        const testBtn = document.getElementById('testBtn');
+
+        function updateStatus(message, type) {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function isLocationInJamaica(lat, lng) {
+            // Jamaica bounds: approximately 17.7°N to 18.5°N, 78.4°W to 76.2°W
+            return lat >= 17.7 && lat <= 18.5 && lng >= -78.4 && lng <= -76.2;
+        }
+
+        async function detectLocation() {
+            updateStatus('🌍 Requesting location permission...', 'detecting');
+            
+            if (!navigator.geolocation) {
+                updateStatus('❌ Geolocation not supported by this browser', 'error');
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            };
+
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+                });
+
+                const locationData = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy,
+                    altitude: position.coords.altitude,
+                    heading: position.coords.heading,
+                    speed: position.coords.speed,
+                    timestamp: position.timestamp
+                };
+
+                currentLocation = locationData;
+                
+                const inJamaica = isLocationInJamaica(locationData.latitude, locationData.longitude);
+                locationData.inJamaica = inJamaica;
+
+                // Update status
+                updateStatus(
+                    `📍 Location detected ${inJamaica ? 'in Jamaica 🇯🇲' : '(outside Jamaica 🌍)'} ±${Math.round(locationData.accuracy)}m accuracy`, 
+                    'success'
+                );
+
+                // Show location details
+                displayLocationDetails(locationData);
+                testBtn.disabled = false;
+
+            } catch (error) {
+                let errorMessage = 'Location detection failed';
+                
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = '❌ Location access denied by user';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = '❌ Location information unavailable';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = '❌ Location request timed out';
+                        break;
+                    default:
+                        errorMessage = `❌ Location error: ${error.message}`;
+                        break;
+                }
+
+                updateStatus(errorMessage, 'error');
+            }
+        }
+
+        function displayLocationDetails(locationData) {
+            const detailsHTML = `
+                <div class="detail-row">
+                    <span class="detail-label">Latitude:</span>
+                    <span class="detail-value">${locationData.latitude.toFixed(6)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Longitude:</span>
+                    <span class="detail-value">${locationData.longitude.toFixed(6)}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Accuracy:</span>
+                    <span class="detail-value">±${Math.round(locationData.accuracy)} meters</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Country:</span>
+                    <span class="detail-value">${locationData.inJamaica ? '🇯🇲 Jamaica' : '🌍 Outside Jamaica'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Timestamp:</span>
+                    <span class="detail-value">${new Date(locationData.timestamp).toLocaleString()}</span>
+                </div>
+                ${locationData.altitude ? `
+                <div class="detail-row">
+                    <span class="detail-label">Altitude:</span>
+                    <span class="detail-value">${Math.round(locationData.altitude)}m</span>
+                </div>
+                ` : ''}
+                ${locationData.speed ? `
+                <div class="detail-row">
+                    <span class="detail-label">Speed:</span>
+                    <span class="detail-value">${Math.round(locationData.speed * 3.6)} km/h</span>
+                </div>
+                ` : ''}
+            `;
+
+            document.getElementById('locationData').innerHTML = detailsHTML;
+            locationDetailsEl.style.display = 'block';
+        }
+
+        async function testHospitals() {
+            if (!currentLocation) {
+                updateStatus('❌ No location data available', 'error');
+                return;
+            }
+
+            updateStatus('🔍 Finding nearest hospitals...', 'detecting');
+
+            try {
+                const url = `http://localhost:3001/api/hospitals?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}&criticality=moderate&transportation_mode=self-carry`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    updateStatus(`✅ Found ${data.data.length} hospitals sorted by distance`, 'success');
+                    displayHospitals(data.data.slice(0, 10)); // Show top 10
+                } else {
+                    updateStatus('❌ Failed to fetch hospitals', 'error');
+                }
+
+            } catch (error) {
+                updateStatus(`❌ Error fetching hospitals: ${error.message}`, 'error');
+            }
+        }
+
+        function displayHospitals(hospitals) {
+            const hospitalsHTML = hospitals.map((hospital, index) => `
+                <div class="hospital-item">
+                    <div class="hospital-name">
+                        ${index + 1}. ${hospital.name}
+                        ${hospital.priority_score ? `(Score: ${hospital.priority_score})` : ''}
+                    </div>
+                    <div class="hospital-info">
+                        ${hospital.distance_km !== null ? `📏 ${hospital.distance_km}km` : '📏 Distance unknown'} • 
+                        ${hospital.travel_time_minutes !== null ? `⏱ ${hospital.travel_time_minutes} minutes` : '⏱ Time unknown'} • 
+                        🏥 ${hospital.capacity} beds
+                        ${hospital.specialties ? `<br>🔬 Specialties: ${Array.isArray(hospital.specialties) ? hospital.specialties.join(', ') : hospital.specialties}` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('hospitalData').innerHTML = hospitalsHTML;
+            hospitalListEl.style.display = 'block';
+        }
+
+        // Auto-detect location on page load
+        window.addEventListener('load', () => {
+            setTimeout(detectLocation, 1000);
+        });
+    </script>
+</body>
+</html>

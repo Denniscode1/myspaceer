@@ -1,0 +1,23 @@
+{
+  "name": "myspaceer-backend",
+  "version": "1.0.0",
+  "description": "Backend API for MySpaceER patient management system",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server-enhanced.js",
+    "dev": "node --watch server-enhanced.js",
+    "start:legacy": "node server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^7.0.9",
+    "sqlite3": "^5.1.6",
+    "twilio": "^5.10.3",
+    "ws": "^8.14.2"
+  }
+}
