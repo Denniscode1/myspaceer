@@ -1,7 +1,22 @@
 import React from 'react';
 import './ModernDataTable.css';
 
-const ModernDataTable = ({ submissions, onDeletePatient, canDelete, isLoading, onViewDetails, onEditPatient }) => {
+const ModernDataTable = ({ 
+  submissions, 
+  allSubmissions,
+  onDeletePatient, 
+  canDelete, 
+  isLoading, 
+  onViewDetails, 
+  onEditPatient, 
+  filters,
+  onFilterChange,
+  onClearFilters,
+  onExport,
+  showFilterModal,
+  setShowFilterModal,
+  searchQuery
+}) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -38,13 +53,43 @@ const ModernDataTable = ({ submissions, onDeletePatient, canDelete, isLoading, o
     }
   };
 
+  // Get unique values for filter options
+  const getUniqueValues = (key) => {
+    if (!allSubmissions) return [];
+    const values = allSubmissions.map(s => {
+      if (key === 'incident') {
+        return s.incident === 'other' ? s.customIncident : s.incident;
+      }
+      if (key === 'status') {
+        return s.patientStatus || 'pending';
+      }
+      return s[key];
+    }).filter((value, index, self) => value && self.indexOf(value) === index);
+    return values.sort();
+  };
+
+  // Handle filter changes
+  const handleFilterUpdate = (filterType, value) => {
+    const newFilters = { ...filters, [filterType]: value };
+    onFilterChange && onFilterChange(newFilters);
+  };
+
+  // Count active filters
+  const getActiveFilterCount = () => {
+    return Object.values(filters).filter(value => value !== 'all').length;
+  };
+
   if (!submissions || submissions.length === 0) {
     return (
       <div className="modern-table-container">
         <div className="table-header">
           <h2>Patient Records</h2>
           <div className="table-actions">
-            <button className="export-btn">
+            <button 
+              className="export-btn"
+              onClick={() => onExport && onExport('csv')}
+              disabled={true}
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2"/>
                 <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2"/>
@@ -68,13 +113,23 @@ const ModernDataTable = ({ submissions, onDeletePatient, canDelete, isLoading, o
       <div className="table-header">
         <h2>Patient Records</h2>
         <div className="table-actions">
-          <button className="filter-btn">
+          <button 
+            className={`filter-btn ${getActiveFilterCount() > 0 ? 'active' : ''}`}
+            onClick={() => setShowFilterModal && setShowFilterModal(true)}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46" stroke="currentColor" strokeWidth="2"/>
             </svg>
             Filter
+            {getActiveFilterCount() > 0 && (
+              <span className="filter-badge">{getActiveFilterCount()}</span>
+            )}
           </button>
-          <button className="export-btn">
+          <button 
+            className="export-btn"
+            onClick={() => onExport && onExport('csv')}
+            disabled={!submissions || submissions.length === 0}
+          >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2"/>
               <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2"/>
@@ -186,6 +241,12 @@ const ModernDataTable = ({ submissions, onDeletePatient, canDelete, isLoading, o
       <div className="table-footer">
         <div className="showing-results">
           Showing <strong>1-{submissions.length}</strong> of <strong>{submissions.length}</strong> results
+          {searchQuery && (
+            <span className="search-indicator"> (filtered by: "{searchQuery}")</span>
+          )}
+          {getActiveFilterCount() > 0 && (
+            <span className="filter-indicator"> ({getActiveFilterCount()} filter{getActiveFilterCount() > 1 ? 's' : ''} applied)</span>
+          )}
         </div>
         <div className="table-pagination">
           <button className="pagination-btn" disabled>
@@ -201,6 +262,140 @@ const ModernDataTable = ({ submissions, onDeletePatient, canDelete, isLoading, o
           </button>
         </div>
       </div>
+
+      {/* Filter Modal */}
+      {showFilterModal && (
+        <div className="modal-overlay" onClick={() => setShowFilterModal(false)}>
+          <div className="filter-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="filter-modal-header">
+              <h3>Filter Patients</h3>
+              <button 
+                className="modal-close-btn"
+                onClick={() => setShowFilterModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="filter-modal-body">
+              <div className="filter-grid">
+                {/* Criticality Filter */}
+                <div className="filter-group">
+                  <label>Criticality:</label>
+                  <select 
+                    value={filters.criticality}
+                    onChange={(e) => handleFilterUpdate('criticality', e.target.value)}
+                  >
+                    <option value="all">All Levels</option>
+                    <option value="mild">Mild</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="severe">Severe</option>
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div className="filter-group">
+                  <label>Status:</label>
+                  <select 
+                    value={filters.status}
+                    onChange={(e) => handleFilterUpdate('status', e.target.value)}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="waiting">Waiting</option>
+                    <option value="in treatment">In Treatment</option>
+                    <option value="treated">Treated</option>
+                    {getUniqueValues('status').map(status => (
+                      !['pending', 'waiting', 'in treatment', 'treated'].includes(status.toLowerCase()) && (
+                        <option key={status} value={status}>{status}</option>
+                      )
+                    ))}
+                  </select>
+                </div>
+
+                {/* Incident Type Filter */}
+                <div className="filter-group">
+                  <label>Incident Type:</label>
+                  <select 
+                    value={filters.incident}
+                    onChange={(e) => handleFilterUpdate('incident', e.target.value)}
+                  >
+                    <option value="all">All Incidents</option>
+                    {getUniqueValues('incident').map(incident => (
+                      <option key={incident} value={incident}>{incident}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Age Range Filter */}
+                <div className="filter-group">
+                  <label>Age Range:</label>
+                  <select 
+                    value={filters.ageRange}
+                    onChange={(e) => handleFilterUpdate('ageRange', e.target.value)}
+                  >
+                    <option value="all">All Ages</option>
+                    <option value="0-1">0-1 years</option>
+                    <option value="2-12">2-12 years</option>
+                    <option value="13-17">13-17 years</option>
+                    <option value="18-30">18-30 years</option>
+                    <option value="31-50">31-50 years</option>
+                    <option value="51-70">51-70 years</option>
+                    <option value="70+">70+ years</option>
+                  </select>
+                </div>
+
+                {/* Transportation Filter */}
+                <div className="filter-group">
+                  <label>Transportation:</label>
+                  <select 
+                    value={filters.transportation}
+                    onChange={(e) => handleFilterUpdate('transportation', e.target.value)}
+                  >
+                    <option value="all">All Methods</option>
+                    <option value="ambulance">Ambulance</option>
+                    <option value="helicopter">Helicopter</option>
+                    <option value="private">Private Transport</option>
+                    <option value="walk-in">Walk-in</option>
+                  </select>
+                </div>
+
+                {/* Date Range Filter */}
+                <div className="filter-group">
+                  <label>Date Range:</label>
+                  <select 
+                    value={filters.dateRange}
+                    onChange={(e) => handleFilterUpdate('dateRange', e.target.value)}
+                  >
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="filter-modal-footer">
+              <button 
+                className="clear-filters-btn"
+                onClick={() => {
+                  onClearFilters && onClearFilters();
+                }}
+                disabled={getActiveFilterCount() === 0}
+              >
+                Clear All Filters
+              </button>
+              <button 
+                className="apply-filters-btn"
+                onClick={() => setShowFilterModal(false)}
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import './ModernHeader.css';
 
-const ModernHeader = ({ user, onRefresh, isLoading, notifications, onToggleSidebar }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+const ModernHeader = ({ user, onRefresh, isLoading, notifications, onToggleSidebar, searchQuery, onSearchChange }) => {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const unreadCount = notifications?.filter(n => !n.read).length || 0;
@@ -31,8 +30,8 @@ const ModernHeader = ({ user, onRefresh, isLoading, notifications, onToggleSideb
           <input
             type="text"
             placeholder="Search patients..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchQuery || ''}
+            onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
             className="search-input"
           />
         </div>

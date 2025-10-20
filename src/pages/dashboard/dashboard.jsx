@@ -15,6 +15,16 @@ const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoa
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    criticality: 'all',
+    status: 'all',
+    incident: 'all',
+    ageRange: 'all',
+    transportation: 'all',
+    dateRange: 'all'
+  });
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
@@ -103,6 +113,147 @@ const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoa
     setSelectedPatient(null);
     setShowDetailsModal(false);
     setShowEditModal(false);
+  };
+
+  // Search and filter functions
+  const handleSearchChange = (query) => {
+    setSearchQuery(query);
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      criticality: 'all',
+      status: 'all',
+      incident: 'all',
+      ageRange: 'all',
+      transportation: 'all',
+      dateRange: 'all'
+    });
+  };
+
+  // Filter and search submissions
+  const getFilteredSubmissions = () => {
+    if (!submissions) return [];
+
+    let filtered = [...submissions];
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(submission => 
+        submission.name.toLowerCase().includes(query) ||
+        (submission.trn && submission.trn.toLowerCase().includes(query)) ||
+        submission.incident.toLowerCase().includes(query) ||
+        (submission.customIncident && submission.customIncident.toLowerCase().includes(query)) ||
+        submission.criticality.toLowerCase().includes(query) ||
+        submission.transportationMode.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply filters
+    if (filters.criticality !== 'all') {
+      filtered = filtered.filter(s => s.criticality === filters.criticality);
+    }
+
+    if (filters.status !== 'all') {
+      filtered = filtered.filter(s => (s.patientStatus || 'pending').toLowerCase() === filters.status.toLowerCase());
+    }
+
+    if (filters.incident !== 'all') {
+      filtered = filtered.filter(s => s.incident === filters.incident);
+    }
+
+    if (filters.ageRange !== 'all') {
+      filtered = filtered.filter(s => s.ageRange === filters.ageRange);
+    }
+
+    if (filters.transportation !== 'all') {
+      filtered = filtered.filter(s => s.transportationMode === filters.transportation);
+    }
+
+    if (filters.dateRange !== 'all') {
+      const now = new Date();
+      const filterDate = new Date();
+      
+      switch (filters.dateRange) {
+        case 'today':
+          filterDate.setHours(0, 0, 0, 0);
+          filtered = filtered.filter(s => new Date(s.submittedAt) >= filterDate);
+          break;
+        case 'week':
+          filterDate.setDate(now.getDate() - 7);
+          filtered = filtered.filter(s => new Date(s.submittedAt) >= filterDate);
+          break;
+        case 'month':
+          filterDate.setMonth(now.getMonth() - 1);
+          filtered = filtered.filter(s => new Date(s.submittedAt) >= filterDate);
+          break;
+      }
+    }
+
+    return filtered;
+  };
+
+  // Export function
+  const handleExport = (format = 'csv') => {
+    const filteredData = getFilteredSubmissions();
+    
+    if (filteredData.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    const headers = [
+      'Patient Name',
+      'TRN',
+      'Age Range',
+      'Gender',
+      'Incident Type',
+      'Criticality',
+      'Status',
+      'Transportation',
+      'Contact Number',
+      'Location',
+      'Medical History',
+      'Additional Notes',
+      'Submitted At'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...filteredData.map(submission => [
+        `"${submission.name}"`,
+        `"${submission.trn || 'N/A'}"`,
+        `"${submission.ageRange}"`,
+        `"${submission.gender}"`,
+        `"${submission.incident === 'other' ? submission.customIncident : submission.incident}"`,
+        `"${submission.criticality}"`,
+        `"${submission.patientStatus || 'Pending'}"`,
+        `"${submission.transportationMode}"`,
+        `"${submission.contactNumber || 'N/A'}"`,
+        `"${formatLocation(submission.location)}"`,
+        `"${(submission.medicalHistory || '').replace(/"/g, '""')}"`,
+        `"${(submission.additionalNotes || '').replace(/"/g, '""')}"`,
+        `"${formatDate(submission.submittedAt)}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `patient_records_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   console.log('Dashboard rendering with modern layout!');
@@ -355,6 +506,8 @@ const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoa
           isLoading={isLoading}
           notifications={notifications}
           onToggleSidebar={toggleSidebar}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
         />
 
         {/* Content Area */}
@@ -363,12 +516,20 @@ const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoa
             <>
               <ModernStatsCards submissions={submissions} />
               <ModernDataTable 
-                submissions={submissions}
+                submissions={getFilteredSubmissions()}
+                allSubmissions={submissions}
                 onDeletePatient={handleDeletePatientClick}
                 onViewDetails={handleViewDetails}
                 onEditPatient={handleEditPatient}
                 canDelete={canDelete}
                 isLoading={isLoading}
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={clearFilters}
+                onExport={handleExport}
+                showFilterModal={showFilterModal}
+                setShowFilterModal={setShowFilterModal}
+                searchQuery={searchQuery}
               />
             </>
           )}

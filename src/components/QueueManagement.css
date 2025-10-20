@@ -1,12 +1,16 @@
-/* Queue Management Styles */
+/* Queue Management Styles - Modern Theme */
 
 .queue-management {
-  padding: 20px;
+  padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--text-color);
-  transition: color 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .queue-management {
+  color: #d1d5db;
 }
 
 /* Notification Styles */
@@ -57,24 +61,34 @@
   }
 }
 
-/* Header Styles */
+/* Header Styles - Modern */
 .queue-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: #ffffff;
   border-radius: 12px;
-  color: white;
-  box-shadow: 0 4px 15px var(--shadow-light);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .queue-header {
+  background: #1f2937;
+  border: 1px solid #374151;
 }
 
 .queue-header h2 {
   margin: 0;
-  font-size: 2.2em;
+  font-size: 18px;
   font-weight: 600;
+  color: #111827;
+}
+
+[data-theme="dark"] .queue-header h2 {
+  color: #f9fafb;
 }
 
 .queue-controls {
@@ -84,55 +98,117 @@
 }
 
 .hospital-select {
-  padding: 10px 15px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: #f9fafb;
+  color: #374151;
   font-size: 14px;
   min-width: 200px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hospital-select:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.hospital-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+[data-theme="dark"] .hospital-select {
+  border: 1px solid #374151;
+  background: #374151;
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .hospital-select:hover {
+  background: #4b5563;
+  border-color: #4b5563;
+}
+
+[data-theme="dark"] .hospital-select:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .hospital-select option {
-  background: var(--background-secondary);
-  color: var(--text-color);
+  background: #ffffff;
+  color: #374151;
+}
+
+[data-theme="dark"] .hospital-select option {
+  background: #374151;
+  color: #d1d5db;
 }
 
 .refresh-btn {
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
   border-radius: 8px;
-  color: white;
   cursor: pointer;
+  font-size: 13px;
   font-weight: 500;
-  transition: all 0.3s ease;
+  color: #374151;
+  transition: all 0.2s ease;
 }
 
 .refresh-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #111827;
 }
 
 .refresh-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Doctor Contact Settings */
+[data-theme="dark"] .refresh-btn {
+  border: 1px solid #374151;
+  background: #374151;
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .refresh-btn:hover:not(:disabled) {
+  background: #4b5563;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+/* Doctor Contact Settings - Modern */
 .doctor-contact-settings {
-  background: var(--background-secondary);
+  background: #ffffff;
   border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
-  border: 1px solid var(--border-color);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .doctor-contact-settings {
+  background: #1f2937;
+  border: 1px solid #374151;
 }
 
 .doctor-contact-settings h3 {
-  margin: 0 0 15px 0;
-  color: var(--heading-color);
-  font-size: 1.3em;
+  margin: 0 0 16px 0;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .doctor-contact-settings h3 {
+  color: #f9fafb;
 }
 
 .contact-inputs {
@@ -144,36 +220,58 @@
 .contact-input {
   flex: 1;
   min-width: 250px;
-  padding: 12px 15px;
-  border: 2px solid var(--form-input-border);
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
-  background: var(--form-input-bg);
-  color: var(--text-color);
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  background: #ffffff;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .contact-input {
+  border: 1px solid #374151;
+  background: #374151;
+  color: #d1d5db;
 }
 
 .contact-input:focus {
   outline: none;
-  border-color: var(--form-input-focus);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Queue Table Styles */
+[data-theme="dark"] .contact-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Queue Table Styles - Modern */
 .queue-table-container {
-  background: var(--form-background);
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 15px var(--shadow-light);
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  margin-bottom: 30px;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .queue-table-container {
+  background: #1f2937;
+  border: 1px solid #374151;
 }
 
 .loading, .no-queue-data {
-  padding: 40px;
+  padding: 60px 24px;
   text-align: center;
-  color: var(--text-muted);
-  font-size: 1.1em;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+[data-theme="dark"] .loading,
+[data-theme="dark"] .no-queue-data {
+  color: #9ca3af;
 }
 
 .queue-table {
@@ -182,26 +280,45 @@
 }
 
 .queue-table th {
-  background-color: #1F2937;
-  /* background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%); */
-  color: white;
-  padding: 15px 10px;
+  padding: 12px 16px;
   text-align: left;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
+  color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+[data-theme="dark"] .queue-table th {
+  color: #9ca3af;
+  border-bottom: 1px solid #374151;
+  background: #111827;
 }
 
 .queue-table td {
-  padding: 15px 10px;
-  border-bottom: 1px solid var(--border-light);
-  vertical-align: top;
-  color: var(--text-color);
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: middle;
+  font-size: 14px;
+  color: #374151;
+}
+
+[data-theme="dark"] .queue-table td {
+  border-bottom: 1px solid #374151;
+  color: #d1d5db;
 }
 
 .queue-row:hover {
-  background-color: var(--background-secondary);
+  background-color: #f9fafb;
+}
+
+[data-theme="dark"] .queue-row:hover {
+  background-color: #374151;
 }
 
 .queue-row.next-patient {
