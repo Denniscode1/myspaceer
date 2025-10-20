@@ -16,6 +16,7 @@ export class MedicalStaffService {
   async initialize() {
     console.log('Initializing Medical Staff Service...');
     await this.createTables();
+    await this.createDefaultUser();
   }
 
   /**
@@ -76,6 +77,75 @@ export class MedicalStaffService {
         });
       });
     });
+  }
+
+  /**
+   * Create default user for development/testing
+   */
+  async createDefaultUser() {
+    try {
+      // Check if default user already exists
+      const existingUser = await new Promise((resolve, reject) => {
+        db.get(
+          'SELECT * FROM medical_staff_requests WHERE email = ?', 
+          ['admin@hospital.com'], 
+          (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          }
+        );
+      });
+
+      if (existingUser) {
+        console.log('✅ Default medical staff user already exists');
+        return;
+      }
+
+      // Create default credentials that don't expire
+      const defaultPassword = 'admin123';
+      const passwordHash = crypto.createHash('sha256').update(defaultPassword).digest('hex');
+      const farFutureDate = new Date();
+      farFutureDate.setFullYear(farFutureDate.getFullYear() + 1); // 1 year from now
+
+      const sql = `
+        INSERT INTO medical_staff_requests (
+          email, role, first_name, last_name, hospital_affiliation, 
+          medical_license, department, request_ip, username, 
+          password_hash, expires_at, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
+      `;
+
+      await new Promise((resolve, reject) => {
+        db.run(sql, [
+          'admin@hospital.com',
+          'doctor',
+          'Admin',
+          'User',
+          'Development Hospital',
+          'DEV123456',
+          'Emergency Medicine',
+          '127.0.0.1',
+          'admin',
+          passwordHash,
+          farFutureDate.toISOString()
+        ], function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(this.lastID);
+          }
+        });
+      });
+
+      console.log('✅ Default medical staff user created:');
+      console.log('   Username: admin');
+      console.log('   Password: admin123');
+      console.log('   Role: doctor');
+      console.log('   Email: admin@hospital.com');
+      
+    } catch (error) {
+      console.error('Failed to create default user:', error);
+    }
   }
 
   /**
