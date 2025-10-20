@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import './dashboard.css';
+import ModernSidebar from '../../components/ModernSidebar.jsx';
+import ModernHeader from '../../components/ModernHeader.jsx';
+import ModernDataTable from '../../components/ModernDataTable.jsx';
+import ModernStatsCards from '../../components/ModernStatsCards.jsx';
 import QueueManagement from '../../components/QueueManagement.jsx';
 import TreatedSection from '../../components/TreatedSection.jsx';
 
@@ -7,6 +11,10 @@ const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoa
   const [activeTab, setActiveTab] = useState('patients');
   const [notifications, setNotifications] = useState([]);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
@@ -68,8 +76,226 @@ const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoa
   // Check if user has permission to delete (doctor or nurse)
   const canDelete = user && (user.role === 'doctor' || user.role === 'nurse');
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSidebarOpen(false); // Close sidebar on mobile after tab selection
+  };
+
+  const handleDeletePatientClick = (submission) => {
+    handleDeleteClick(submission);
+  };
+
+  const handleViewDetails = (submission) => {
+    setSelectedPatient(submission);
+    setShowDetailsModal(true);
+  };
+
+  const handleEditPatient = (submission) => {
+    setSelectedPatient(submission);
+    setShowEditModal(true);
+  };
+
+  const closeModals = () => {
+    setSelectedPatient(null);
+    setShowDetailsModal(false);
+    setShowEditModal(false);
+  };
+
+  console.log('Dashboard rendering with modern layout!');
+  
   return (
-    <div className="dashboard-container">
+    <div className="modern-dashboard">
+      {/* Patient Details Modal */}
+      {showDetailsModal && selectedPatient && (
+        <div className="modal-overlay" onClick={closeModals}>
+          <div className="modal-content patient-details-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Patient Details</h3>
+              <button className="modal-close" onClick={closeModals}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="details-grid">
+                <div className="detail-item">
+                  <label>Patient Name:</label>
+                  <span>{selectedPatient.name}</span>
+                </div>
+                <div className="detail-item">
+                  <label>TRN:</label>
+                  <span>{selectedPatient.trn || 'N/A'}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Age Range:</label>
+                  <span>{selectedPatient.ageRange}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Gender:</label>
+                  <span>{selectedPatient.gender}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Incident Type:</label>
+                  <span>{selectedPatient.incident === 'other' ? selectedPatient.customIncident : selectedPatient.incident}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Criticality:</label>
+                  <span 
+                    className="criticality-badge"
+                    style={{ backgroundColor: getCriticalityColor(selectedPatient.criticality), color: 'white', padding: '4px 8px', borderRadius: '4px' }}
+                  >
+                    {selectedPatient.criticality}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <label>Transportation:</label>
+                  <span>{selectedPatient.transportationMode}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Location:</label>
+                  <span>{formatLocation(selectedPatient.location)}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Status:</label>
+                  <span>{selectedPatient.patientStatus || 'Pending'}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Submitted:</label>
+                  <span>{formatDate(selectedPatient.submittedAt)}</span>
+                </div>
+                {selectedPatient.contactNumber && (
+                  <div className="detail-item">
+                    <label>Contact Number:</label>
+                    <span>{selectedPatient.contactNumber}</span>
+                  </div>
+                )}
+                {selectedPatient.medicalHistory && (
+                  <div className="detail-item full-width">
+                    <label>Medical History:</label>
+                    <div className="notes-content">
+                      {selectedPatient.medicalHistory}
+                    </div>
+                  </div>
+                )}
+                {selectedPatient.additionalNotes && (
+                  <div className="detail-item full-width">
+                    <label>Additional Notes:</label>
+                    <div className="notes-content">
+                      {selectedPatient.additionalNotes}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Patient Edit Modal */}
+      {showEditModal && selectedPatient && (
+        <div className="modal-overlay" onClick={closeModals}>
+          <div className="modal-content patient-edit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Patient</h3>
+              <button className="modal-close" onClick={closeModals}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <form className="edit-form">
+                <div className="form-group">
+                  <label>Patient Name:</label>
+                  <input 
+                    type="text" 
+                    defaultValue={selectedPatient.name}
+                    placeholder="Enter patient name"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>TRN:</label>
+                  <input 
+                    type="text" 
+                    defaultValue={selectedPatient.trn || ''}
+                    placeholder="Enter TRN"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Age Range:</label>
+                  <select defaultValue={selectedPatient.ageRange}>
+                    <option value="0-1">0-1 years</option>
+                    <option value="2-12">2-12 years</option>
+                    <option value="13-17">13-17 years</option>
+                    <option value="18-30">18-30 years</option>
+                    <option value="31-50">31-50 years</option>
+                    <option value="51-70">51-70 years</option>
+                    <option value="70+">70+ years</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Gender:</label>
+                  <select defaultValue={selectedPatient.gender}>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Criticality:</label>
+                  <select defaultValue={selectedPatient.criticality}>
+                    <option value="mild">Mild</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="severe">Severe</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Transportation:</label>
+                  <select defaultValue={selectedPatient.transportationMode}>
+                    <option value="ambulance">Ambulance</option>
+                    <option value="helicopter">Helicopter</option>
+                    <option value="private">Private Transport</option>
+                    <option value="walk-in">Walk-in</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Contact Number:</label>
+                  <input 
+                    type="tel" 
+                    defaultValue={selectedPatient.contactNumber || ''}
+                    placeholder="Enter contact number"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Medical History:</label>
+                  <textarea 
+                    rows="3"
+                    defaultValue={selectedPatient.medicalHistory || ''}
+                    placeholder="Enter medical history"
+                  ></textarea>
+                </div>
+                <div className="form-group">
+                  <label>Additional Notes:</label>
+                  <textarea 
+                    rows="3"
+                    defaultValue={selectedPatient.additionalNotes || ''}
+                    placeholder="Enter additional notes"
+                  ></textarea>
+                </div>
+              </form>
+            </div>
+            
+            <div className="modal-footer">
+              <button className="cancel-button" onClick={closeModals}>Cancel</button>
+              <button className="save-button" onClick={() => {
+                // TODO: Implement save functionality
+                console.log('Save patient changes');
+                closeModals();
+              }}>Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Dialog */}
       {deleteConfirmation?.isOpen && (
         <div className="modal-overlay" onClick={handleDeleteCancel}>
@@ -107,202 +333,59 @@ const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoa
           </div>
         </div>
       )}
-      
-      <div className="dashboard-header">
-        <div className="header-left">
-          <h1>Emergency Response Dashboard</h1>
-          {user && (
-            <p className="welcome-message">Welcome, Dr. {user.username}</p>
+
+      {/* Sidebar */}
+      <ModernSidebar 
+        user={user}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onLogout={onLogout}
+        onBackToForm={onBackToForm}
+      />
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && <div className="sidebar-overlay show" onClick={toggleSidebar}></div>}
+
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Header */}
+        <ModernHeader 
+          user={user}
+          onRefresh={onRefresh}
+          isLoading={isLoading}
+          notifications={notifications}
+          onToggleSidebar={toggleSidebar}
+        />
+
+        {/* Content Area */}
+        <div className="content-area">
+          {activeTab === 'patients' && (
+            <>
+              <ModernStatsCards submissions={submissions} />
+              <ModernDataTable 
+                submissions={submissions}
+                onDeletePatient={handleDeletePatientClick}
+                onViewDetails={handleViewDetails}
+                onEditPatient={handleEditPatient}
+                canDelete={canDelete}
+                isLoading={isLoading}
+              />
+            </>
+          )}
+
+          {activeTab === 'queue' && (
+            <QueueManagement 
+              user={user} 
+              onNotificationSent={handleNotificationSent}
+            />
+          )}
+
+          {activeTab === 'treated' && (
+            <TreatedSection 
+              user={user}
+            />
           )}
         </div>
-        <div className="header-actions">
-          {/* Notifications Bell */}
-          <div className="notifications-container">
-            <button className="notifications-bell">
-              🔔 {notifications.filter(n => !n.read).length > 0 && (
-                <span className="notification-badge">{notifications.filter(n => !n.read).length}</span>
-              )}
-            </button>
-            <div className="notifications-dropdown">
-              {notifications.length === 0 ? (
-                <div className="no-notifications">No notifications</div>
-              ) : (
-                notifications.map(notification => (
-                  <div 
-                    key={notification.id} 
-                    className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-                    onClick={() => markNotificationRead(notification.id)}
-                  >
-                    <div className="notification-message">{notification.message}</div>
-                    <div className="notification-time">{new Date(notification.timestamp).toLocaleTimeString()}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {onRefresh && (
-            <button 
-              className="refresh-button" 
-              onClick={onRefresh}
-              disabled={isLoading}
-              style={{ marginRight: '10px' }}
-            >
-              {isLoading ? '🔄 Loading...' : '🔄 Refresh'}
-            </button>
-          )}
-          <button className="back-button" onClick={onBackToForm}>
-            ← Back to Form
-          </button>
-          {onLogout && (
-            <button className="logout-button" onClick={onLogout}>
-              Logout
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button 
-          className={`tab-button ${activeTab === 'patients' ? 'active' : ''}`}
-          onClick={() => setActiveTab('patients')}
-        >
-          📋 Patient Records
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'queue' ? 'active' : ''}`}
-          onClick={() => setActiveTab('queue')}
-        >
-          🏥 Queue Management
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'treated' ? 'active' : ''}`}
-          onClick={() => setActiveTab('treated')}
-        >
-          ✅ Treated Patients
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      <div className="tab-content">
-        {activeTab === 'patients' && (
-          <>
-            <div className="dashboard-stats">
-              <div className="stat-card">
-                <h3>Total Submissions</h3>
-                <div className="stat-number">{submissions.length}</div>
-              </div>
-              <div className="stat-card">
-                <h3>Severe Cases</h3>
-                <div className="stat-number critical">
-                  {submissions.filter(s => s.criticality === 'severe').length}
-                </div>
-              </div>
-              <div className="stat-card">
-                <h3>Moderate Cases</h3>
-                <div className="stat-number urgent">
-                  {submissions.filter(s => s.criticality === 'moderate').length}
-                </div>
-              </div>
-              <div className="stat-card">
-                <h3>Mild Cases</h3>
-                <div className="stat-number mild">
-                  {submissions.filter(s => s.criticality === 'mild').length}
-                </div>
-              </div>
-            </div>
-
-            {isLoading && submissions.length === 0 ? (
-              <div className="no-data">
-                <p>Loading patient data...</p>
-              </div>
-            ) : submissions.length === 0 ? (
-              <div className="no-data">
-                <p>No patient records found. Submit a form to see data here.</p>
-              </div>
-            ) : (
-              <div className="submissions-table-container">
-                <h2>Recent Submissions</h2>
-                <div className="table-wrapper">
-                  <table className="submissions-table">
-                    <thead>
-                      <tr>
-                        <th>Submitted At</th>
-                        <th>Name</th>
-                        <th>TRN</th>
-                        <th>Age Range</th>
-                        <th>Gender</th>
-                        <th>Incident</th>
-                        <th>Criticality</th>
-                        <th>Status</th>
-                        <th>Transportation</th>
-                        <th>Travel Time</th>
-                        <th>Location</th>
-                        {canDelete && <th>Actions</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {submissions.map((submission, index) => (
-                        <tr key={submission.id || index}>
-                          <td>{formatDate(submission.submittedAt)}</td>
-                          <td className="name-cell">{submission.name}</td>
-                          <td>{submission.trn || 'N/A'}</td>
-                          <td>{submission.ageRange}</td>
-                          <td>{submission.gender}</td>
-                          <td className="incident-cell">
-                            {submission.incident === 'other' 
-                              ? submission.customIncident 
-                              : submission.incident}
-                          </td>
-                          <td>
-                            <span 
-                              className="criticality-badge"
-                              style={{ backgroundColor: getCriticalityColor(submission.criticality) }}
-                            >
-                              {submission.criticality}
-                            </span>
-                          </td>
-                          <td>{submission.patientStatus}</td>
-                          <td>{submission.transportationMode}</td>
-                          <td>{submission.estimatedTravelTime}</td>
-                          <td className="location-cell">
-                            {formatLocation(submission.location)}
-                          </td>
-                          {canDelete && (
-                            <td className="actions-cell">
-                              <button 
-                                className="delete-button"
-                                onClick={() => handleDeleteClick(submission)}
-                                title="Delete Patient"
-                                disabled={isLoading}
-                              >
-                                🗑️
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === 'queue' && (
-          <QueueManagement 
-            user={user} 
-            onNotificationSent={handleNotificationSent}
-          />
-        )}
-
-        {activeTab === 'treated' && (
-          <TreatedSection 
-            user={user}
-          />
-        )}
       </div>
     </div>
   );

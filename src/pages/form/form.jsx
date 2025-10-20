@@ -1,7 +1,9 @@
 import { memo, useState, useCallback, useEffect } from 'react';
 import LocationPermission from '../../components/LocationPermission.jsx';
+import ThemeToggle from '../../components/ThemeToggle.jsx';
 import { isNewUser } from '../../utils/locationPreferences.js';
-import './form.css';
+import '../../styles/theme.css';
+import './Form.css';
 
 const PatientTriageForm = ({ onSubmit, onDoctorAccess, isLoading: parentLoading }) => {
   const [formData, setFormData] = useState({
@@ -215,14 +217,20 @@ const PatientTriageForm = ({ onSubmit, onDoctorAccess, isLoading: parentLoading 
     <div className="form-container">
       <div className="form-content">
         <div className="form-header">
-          <div className="header-top">
-            <div>
-              <h1>🤖 AI-Powered Emergency Triage</h1>
-              <p>Intelligent patient prioritization and queue management</p>
+          <div className="logo-container">
+            <div className="logo">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <rect x="16" y="8" width="8" height="24" rx="2" fill="#FF4081"/>
+                <rect x="8" y="16" width="24" height="8" rx="2" fill="#FF4081"/>
+              </svg>
             </div>
-            <div className="header-info">
-              <small>Emergency Response System - Patient Registration</small>
+            <div className="brand-info">
+              <h1>MYSPACE-ER</h1>
+              <p>PATIENT QUEUE MANAGEMENT SYSTEM</p>
             </div>
+          </div>
+          <div className="header-controls">
+            <ThemeToggle size="medium" />
           </div>
           {locationError && (
             <div className="location-warning">
@@ -242,305 +250,278 @@ const PatientTriageForm = ({ onSubmit, onDoctorAccess, isLoading: parentLoading 
         </div>
         
         <form className="patient-form" onSubmit={handleSubmit}>
-        {/* Name Field */}
-        <div className="form-group">
-          <label htmlFor="name" className="form-label required">
-            Patient Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            className={`form-input ${errors.name ? 'error' : ''}`}
-            value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            placeholder="Enter patient's full name"
-          />
-          {errors.name && <span className="error-message">{errors.name}</span>}
-        </div>
-
-        {/* Gender Field */}
-        <div className="form-group">
-          <fieldset className="form-fieldset">
-            <legend className="form-label required">Gender</legend>
-            <div className="radio-group">
-              <label className="radio-label">
+          <div className="form-three-columns">
+            {/* LEFT SECTION */}
+            <div className="form-left-section">
+              {/* Patient Name */}
+              <div className="form-field">
+                <label className="field-label required">PATIENT NAME</label>
                 <input
-                  type="radio"
-                  name="gender"
-                  value="male"
-                  checked={formData.gender === 'male'}
-                  onChange={(e) => handleInputChange('gender', e.target.value)}
+                  type="text"
+                  className={`field-input ${errors.name ? 'error' : ''}`}
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  placeholder="Enter patient's full name"
                 />
-                <span className="radio-custom"></span>
-                Male
-              </label>
-              <label className="radio-label">
+                {errors.name && <span className="error-text">{errors.name}</span>}
+              </div>
+
+              {/* Age Range */}
+              <div className="form-field">
+                <label className="field-label required">AGE RANGE</label>
+                <select
+                  className={`field-input ${errors.ageRange ? 'error' : ''}`}
+                  value={formData.ageRange}
+                  onChange={(e) => handleInputChange('ageRange', e.target.value)}
+                >
+                  <option value="">Select age range</option>
+                  <option value="0-10">0–10</option>
+                  <option value="11-30">11–30</option>
+                  <option value="31-50">31–50</option>
+                  <option value="51+">51 and over</option>
+                </select>
+                {errors.ageRange && <span className="error-text">{errors.ageRange}</span>}
+              </div>
+
+              {/* TRN */}
+              <div className="form-field">
+                <label className="field-label">TRN (TAX REGISTRATION NUMBER) <span className="optional-text">Optional</span></label>
                 <input
-                  type="radio"
-                  name="gender"
-                  value="female"
-                  checked={formData.gender === 'female'}
-                  onChange={(e) => handleInputChange('gender', e.target.value)}
+                  type="text"
+                  className="field-input"
+                  value={formData.trn}
+                  onChange={(e) => handleInputChange('trn', e.target.value)}
+                  placeholder="Enter TRN if available"
                 />
-                <span className="radio-custom"></span>
-                Female
-              </label>
-            </div>
-            {errors.gender && <span className="error-message">{errors.gender}</span>}
-          </fieldset>
-        </div>
+              </div>
 
-        {/* Age Range Field */}
-        <div className="form-group">
-          <label htmlFor="ageRange" className="form-label required">
-            Age Range
-          </label>
-          <select
-            id="ageRange"
-            className={`form-select ${errors.ageRange ? 'error' : ''}`}
-            value={formData.ageRange}
-            onChange={(e) => handleInputChange('ageRange', e.target.value)}
-          >
-            <option value="">Select age range</option>
-            <option value="0-10">0–10</option>
-            <option value="11-30">11–30</option>
-            <option value="31-50">31–50</option>
-            <option value="51+">51 and over</option>
-          </select>
-          {errors.ageRange && <span className="error-message">{errors.ageRange}</span>}
-        </div>
+              {/* Incident Type */}
+              <div className="form-field">
+                <label className="field-label required">INCIDENT TYPE</label>
+                <select
+                  className={`field-input ${errors.incident ? 'error' : ''}`}
+                  value={formData.incident}
+                  onChange={(e) => handleInputChange('incident', e.target.value)}
+                >
+                  <option value="">Select incident type</option>
+                  <option value="shooting">Shooting</option>
+                  <option value="motor-vehicle-accident">Motor vehicle accident</option>
+                  <option value="stabbing">Stabbing</option>
+                  <option value="other">Other</option>
+                </select>
+                {errors.incident && <span className="error-text">{errors.incident}</span>}
+              </div>
 
-        {/* TRN Field */}
-        <div className="form-group">
-          <label htmlFor="trn" className="form-label">
-            TRN (Tax Registration Number)
-            <span className="optional">Optional</span>
-          </label>
-          <input
-            type="text"
-            id="trn"
-            className="form-input"
-            value={formData.trn}
-            onChange={(e) => handleInputChange('trn', e.target.value)}
-            placeholder="Enter TRN if available"
-          />
-        </div>
-
-        {/* Incident Field */}
-        <div className="form-group">
-          <label htmlFor="incident" className="form-label required">
-            Incident Type
-          </label>
-          <select
-            id="incident"
-            className={`form-select ${errors.incident ? 'error' : ''}`}
-            value={formData.incident}
-            onChange={(e) => handleInputChange('incident', e.target.value)}
-          >
-            <option value="">Select incident type</option>
-            <option value="shooting">Shooting</option>
-            <option value="motor-vehicle-accident">Motor vehicle accident</option>
-            <option value="stabbing">Stabbing</option>
-            <option value="other">Other</option>
-          </select>
-          {errors.incident && <span className="error-message">{errors.incident}</span>}
-        </div>
-
-        {/* Custom Incident Description */}
-        {formData.incident === 'other' && (
-          <div className="form-group">
-            <label htmlFor="customIncident" className="form-label required">
-              Describe Incident
-            </label>
-            <textarea
-              id="customIncident"
-              className={`form-textarea ${errors.customIncident ? 'error' : ''}`}
-              value={formData.customIncident}
-              onChange={(e) => handleInputChange('customIncident', e.target.value)}
-              placeholder="Please provide details about the incident"
-              rows="3"
-            />
-            {errors.customIncident && <span className="error-message">{errors.customIncident}</span>}
-          </div>
-        )}
-
-        {/* Incident Description Field - Required for AI Triage */}
-        <div className="form-group">
-          <label htmlFor="incidentDescription" className="form-label required">
-            Detailed Incident Description
-            <span className="ai-info">🤖 AI will analyze this to determine priority</span>
-          </label>
-          <textarea
-            id="incidentDescription"
-            className={`form-textarea ${errors.incidentDescription ? 'error' : ''}`}
-            value={formData.incidentDescription}
-            onChange={(e) => handleInputChange('incidentDescription', e.target.value)}
-            placeholder="Please provide detailed information about the patient's condition, injuries, symptoms, and any relevant medical history. Include severity indicators like consciousness level, bleeding amount, pain level, breathing difficulty, etc. The AI uses this information to prioritize treatment."
-            rows="4"
-          />
-          <small className="field-help">
-            💡 <strong>Be specific:</strong> Include symptoms, severity, vital signs, mechanism of injury, current patient state, and any immediate concerns.
-          </small>
-          {errors.incidentDescription && <span className="error-message">{errors.incidentDescription}</span>}
-        </div>
-
-        {/* Patient Status Field */}
-        <div className="form-group">
-          <fieldset className="form-fieldset">
-            <legend className="form-label required">Patient Status</legend>
-            <div className="radio-group">
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="patientStatus"
-                  value="conscious"
-                  checked={formData.patientStatus === 'conscious'}
-                  onChange={(e) => handleInputChange('patientStatus', e.target.value)}
-                />
-                <span className="radio-custom"></span>
-                Conscious
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="patientStatus"
-                  value="unconscious"
-                  checked={formData.patientStatus === 'unconscious'}
-                  onChange={(e) => handleInputChange('patientStatus', e.target.value)}
-                />
-                <span className="radio-custom"></span>
-                Unconscious
-              </label>
-            </div>
-            {errors.patientStatus && <span className="error-message">{errors.patientStatus}</span>}
-          </fieldset>
-        </div>
-
-        {/* Transportation Mode Field */}
-        <div className="form-group">
-          <fieldset className="form-fieldset">
-            <legend className="form-label required">Transportation Mode</legend>
-            <div className="radio-group">
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="transportationMode"
-                  value="ambulance"
-                  checked={formData.transportationMode === 'ambulance'}
-                  onChange={(e) => handleInputChange('transportationMode', e.target.value)}
-                />
-                <span className="radio-custom"></span>
-                Ambulance
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="transportationMode"
-                  value="self-carry"
-                  checked={formData.transportationMode === 'self-carry'}
-                  onChange={(e) => handleInputChange('transportationMode', e.target.value)}
-                />
-                <span className="radio-custom"></span>
-                Self carry
-              </label>
-            </div>
-            {errors.transportationMode && <span className="error-message">{errors.transportationMode}</span>}
-          </fieldset>
-        </div>
-
-        {/* Contact Information Section */}
-        <div className="form-section">
-          <h3 className="section-title">📱 Contact Information</h3>
-          <p className="section-description">We'll send you updates about your queue position and treatment status</p>
-          
-          {errors.contactInfo && <div className="error-message section-error">{errors.contactInfo}</div>}
-          
-          <div className="form-row">
-            {/* Email Field */}
-            <div className="form-group half-width">
-              <label htmlFor="contactEmail" className="form-label">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="contactEmail"
-                className={`form-input ${errors.contactEmail ? 'error' : ''}`}
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                placeholder="your@email.com"
-              />
-              {errors.contactEmail && <span className="error-message">{errors.contactEmail}</span>}
+              {/* Gender */}
+              <div className="form-field">
+                <label className="field-label required">GENDER</label>
+                <div className="radio-options">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="male"
+                      checked={formData.gender === 'male'}
+                      onChange={(e) => handleInputChange('gender', e.target.value)}
+                    />
+                    <span className="radio-circle"></span>
+                    Male
+                  </label>
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="female"
+                      checked={formData.gender === 'female'}
+                      onChange={(e) => handleInputChange('gender', e.target.value)}
+                    />
+                    <span className="radio-circle"></span>
+                    Female
+                  </label>
+                </div>
+                {errors.gender && <span className="error-text">{errors.gender}</span>}
+              </div>
             </div>
 
-            {/* Phone Field */}
-            <div className="form-group half-width">
-              <label htmlFor="contactPhone" className="form-label">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="contactPhone"
-                className={`form-input ${errors.contactPhone ? 'error' : ''}`}
-                value={formData.contactPhone}
-                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                placeholder="+1 (876) 123-4567"
-              />
-              {errors.contactPhone && <span className="error-message">{errors.contactPhone}</span>}
-            </div>
-          </div>
+            {/* MIDDLE SECTION */}
+            <div className="form-middle-section">
+              {/* Custom Incident Description */}
+              {formData.incident === 'other' && (
+                <div className="form-field">
+                  <label className="field-label required">Describe Incident</label>
+                  <textarea
+                    className={`field-input ${errors.customIncident ? 'error' : ''}`}
+                    value={formData.customIncident}
+                    onChange={(e) => handleInputChange('customIncident', e.target.value)}
+                    placeholder="Please provide details about the incident"
+                    rows="3"
+                    
+                  />
+                  {errors.customIncident && <span className="error-text">{errors.customIncident}</span>}
+                </div>
+              )}
 
-          <div className="form-row">
-            {/* Emergency Contact Name */}
-            <div className="form-group half-width">
-              <label htmlFor="emergencyContact" className="form-label">
-                Emergency Contact Name
-                <span className="optional">Optional</span>
-              </label>
-              <input
-                type="text"
-                id="emergencyContact"
-                className="form-input"
-                value={formData.emergencyContact}
-                onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
-                placeholder="Contact person name"
-              />
+              {/* Detailed Incident Description */}
+              <div className="form-field">
+                <label className="field-label required">
+                  DETAILED INCIDENT DESCRIPTION
+                  <span className="ai-note">🤖 AI will analyze this to determine priority</span>
+                </label>
+                <textarea
+                  className={`field-input textarea-extra-large ${errors.incidentDescription ? 'error' : ''}`}
+                  value={formData.incidentDescription}
+                  onChange={(e) => handleInputChange('incidentDescription', e.target.value)}
+                  placeholder="Please provide detailed information about the patient's condition, injuries, symptoms, and any relevant medical history. Include severity indicators like consciousness level, bleeding amount, pain level, breathing difficulty, etc. The AI uses this information to prioritize treatment."
+                  rows="8"
+                />
+                <small className="help-text">
+                  💡 <strong>Be specific:</strong> Include symptoms, severity, vital signs, mechanism of injury, current patient state, and any immediate concerns.
+                </small>
+                {errors.incidentDescription && <span className="error-text">{errors.incidentDescription}</span>}
+              </div>
+
+              {/* Patient Status */}
+              <div className="form-field">
+                <label className="field-label required">PATIENT STATUS</label>
+                <div className="radio-options">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="patientStatus"
+                      value="conscious"
+                      checked={formData.patientStatus === 'conscious'}
+                      onChange={(e) => handleInputChange('patientStatus', e.target.value)}
+                    />
+                    <span className="radio-circle"></span>
+                    Conscious
+                  </label>
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="patientStatus"
+                      value="unconscious"
+                      checked={formData.patientStatus === 'unconscious'}
+                      onChange={(e) => handleInputChange('patientStatus', e.target.value)}
+                    />
+                    <span className="radio-circle"></span>
+                    Unconscious
+                  </label>
+                </div>
+                {errors.patientStatus && <span className="error-text">{errors.patientStatus}</span>}
+              </div>
+
+              {/* Transportation Mode */}
+              <div className="form-field">
+                <label className="field-label required">TRANSPORTATION MODE</label>
+                <div className="radio-options">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="transportationMode"
+                      value="conscious"
+                      checked={formData.transportationMode === 'conscious'}
+                      onChange={(e) => handleInputChange('transportationMode', e.target.value)}
+                    />
+                    <span className="radio-circle"></span>
+                    Conscious
+                  </label>
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="transportationMode"
+                      value="unconscious"
+                      checked={formData.transportationMode === 'unconscious'}
+                      onChange={(e) => handleInputChange('transportationMode', e.target.value)}
+                    />
+                    <span className="radio-circle"></span>
+                    Unconscious
+                  </label>
+                </div>
+                {errors.transportationMode && <span className="error-text">{errors.transportationMode}</span>}
+              </div>
             </div>
 
-            {/* Emergency Contact Phone */}
-            <div className="form-group half-width">
-              <label htmlFor="emergencyPhone" className="form-label">
-                Emergency Contact Phone
-                <span className="optional">Optional</span>
-              </label>
-              <input
-                type="tel"
-                id="emergencyPhone"
-                className="form-input"
-                value={formData.emergencyPhone}
-                onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
-                placeholder="+1 (876) 123-4567"
-              />
+            {/* RIGHT SECTION - Contact Information */}
+            <div className="form-right-section">
+              <div className="contact-info-section">
+                <div className="section-header">
+                  <span className="phone-icon">📱</span>
+                  <h3 className="section-title">CONTACT INFORMATION</h3>
+                </div>
+                <p className="section-subtitle">We'll send you updates about your queue position and treatment status</p>
+                
+                {errors.contactInfo && <div className="contact-error">{errors.contactInfo}</div>}
+                
+                {/* Email */}
+                <div className="form-field">
+                  <label className="field-label">EMAIL ADDRESS</label>
+                  <input
+                    type="email"
+                    className={`field-input ${errors.contactEmail ? 'error' : ''}`}
+                    value={formData.contactEmail}
+                    onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                    placeholder="your@email.com"
+                  />
+                  {errors.contactEmail && <span className="error-text">{errors.contactEmail}</span>}
+                </div>
+
+                {/* Phone */}
+                <div className="form-field">
+                  <label className="field-label">PHONE NUMBER</label>
+                  <input
+                    type="tel"
+                    className={`field-input ${errors.contactPhone ? 'error' : ''}`}
+                    value={formData.contactPhone}
+                    onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                    placeholder="+1 (876) 123-4567"
+                  />
+                  {errors.contactPhone && <span className="error-text">{errors.contactPhone}</span>}
+                </div>
+
+                {/* Emergency Contact Name */}
+                <div className="form-field">
+                  <label className="field-label">EMERGENCY CONTACT NAME <span className="optional-text">Optional</span></label>
+                  <input
+                    type="text"
+                    className="field-input"
+                    value={formData.emergencyContact}
+                    onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
+                    placeholder="Contact person name"
+                  />
+                </div>
+
+                {/* Emergency Contact Phone */}
+                <div className="form-field">
+                  <label className="field-label">EMERGENCY CONTACT PHONE <span className="optional-text">Optional</span></label>
+                  <input
+                    type="tel"
+                    className="field-input"
+                    value={formData.emergencyPhone}
+                    onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
+                    placeholder="+1 (876) 123-4567"
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <div className="submit-button-container">
+                  <button 
+                    type="submit" 
+                    className="submit-button"
+                    disabled={isSubmitting || parentLoading}
+                  >
+                    {(isSubmitting || parentLoading) ? (
+                      <>
+                        <span className="spinner"></span>
+                        {parentLoading ? 'Saving to Database...' : 'Processing...'}
+                      </>
+                    ) : (
+                      'Submit Patient Data'
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Submit Button */}
-        <div className="form-group">
-          <button 
-            type="submit" 
-            className="btn btn-primary"
-            disabled={isSubmitting || parentLoading}
-          >
-            {(isSubmitting || parentLoading) ? (
-              <>
-                <span className="loading-spinner"></span>
-                {parentLoading ? 'Saving to Database...' : 'Processing...'}
-              </>
-            ) : (
-              'Submit Patient Data'
-            )}
-          </button>
-        </div>
       </form>
       
       {/* Doctor Access Footer */}

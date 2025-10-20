@@ -20,10 +20,10 @@ export class HospitalSelector {
   }
 
   /**
-   * Select the nearest and most appropriate hospital for a patient
+   * Select the nearest hospital by distance only
    */
   async selectNearestHospital(reportData) {
-    const { report_id, latitude, longitude, criticality, incident_type } = reportData;
+    const { report_id, latitude, longitude } = reportData;
 
     if (!latitude || !longitude) {
       throw new Error('Patient location coordinates are required for hospital selection');
@@ -48,30 +48,22 @@ export class HospitalSelector {
         )
       }));
 
-      // Score hospitals based on multiple factors
-      const scoredHospitals = hospitalDistances.map(hospital => ({
-        ...hospital,
-        score: this.calculateHospitalScore(hospital, reportData)
-      }));
+      // Sort by distance only (closest first)
+      const sortedHospitals = hospitalDistances.sort((a, b) => a.distance - b.distance);
 
-      // Sort by score (higher is better)
-      const rankedHospitals = scoredHospitals.sort((a, b) => b.score - a.score);
-
-      // Select the best hospital
-      const selectedHospital = rankedHospitals[0];
+      // Select the closest hospital
+      const closestHospital = sortedHospitals[0];
 
       logEvent('hospital_auto_selected', 'hospital_assignment', report_id, null, null, {
-        selected_hospital: selectedHospital.hospital_id,
-        distance_km: selectedHospital.distance,
-        travel_time_minutes: selectedHospital.travelTime,
-        score: selectedHospital.score,
-        alternatives_considered: rankedHospitals.length
+        selected_hospital: closestHospital.hospital_id,
+        distance_km: closestHospital.distance,
+        travel_time_minutes: closestHospital.travelTime,
+        selection_method: 'closest_distance'
       });
 
       return {
-        selected_hospital: selectedHospital,
-        alternatives: rankedHospitals.slice(1, 4), // Top 3 alternatives
-        selection_reason: this.generateSelectionReason(selectedHospital, reportData)
+        selected_hospital: closestHospital,
+        selection_reason: `Closest hospital at ${closestHospital.distance.toFixed(2)} km away`
       };
 
     } catch (error) {

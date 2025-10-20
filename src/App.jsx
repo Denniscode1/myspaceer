@@ -1,10 +1,10 @@
 import {Form} from './pages/form/form.jsx';
 import Dashboard from './pages/dashboard/dashboard.jsx';
 import DoctorLogin from './components/DoctorLogin.jsx';
-import ThemeToggle from './components/ThemeToggle.jsx';
 import { ThemeProvider } from './contexts/ThemeContext.jsx';
 import { apiService, mapFormDataToPatient, mapPatientToFormData } from './services/apiService.js';
 import { memo, useState, useEffect } from 'react';
+import './styles/theme.css';
 
 const App = () => {
   const [currentView, setCurrentView] = useState('form');
@@ -119,15 +119,6 @@ const App = () => {
   return (
     <ThemeProvider>
       <div>
-        {/* Theme Toggle - Fixed position */}
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          left: '20px',
-          zIndex: 1000
-        }}>
-          <ThemeToggle size="medium" />
-        </div>
 
         {apiError && (
           <div style={{

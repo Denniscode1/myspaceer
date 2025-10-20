@@ -1,7 +1,9 @@
 import { useState, memo } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 import './DoctorLogin.css';
 
 const DoctorLogin = ({ onLogin, onCancel }) => {
+  const { theme } = useTheme();
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
@@ -59,7 +61,7 @@ const DoctorLogin = ({ onLogin, onCancel }) => {
 
   return (
     <div className="login-overlay">
-      <div className="login-container">
+      <div className={`login-container ${theme}`}>
         <div className="login-header">
           <h2>Medical Staff Login</h2>
           <p>Access to Emergency Response Dashboard</p>

@@ -48,30 +48,25 @@ export class TravelTimeService {
         throw new Error('No valid routes found to any hospital');
       }
 
-      // Score and rank hospitals
-      const scoredHospitals = this.scoreHospitals(validRoutes, criticality);
+      // Sort by travel time only (fastest first)
+      const sortedHospitals = validRoutes.sort((a, b) => a.duration_seconds - b.duration_seconds);
       
-      // Select best hospital
-      const bestHospital = scoredHospitals[0];
+      // Select closest hospital by travel time
+      const closestHospital = sortedHospitals[0];
 
-      // Save travel estimates for all considered hospitals
+      // Save travel estimate for closest hospital only
       try {
-        const savePromises = scoredHospitals.slice(0, 3).map(async (hospital) => {
-          const routeInfo = hospital.route_info;
-          return saveTravelEstimate(
-            report_id,
-            hospital.hospital_id,
-            routeInfo.duration_seconds,
-            routeInfo.distance_meters,
-            routeInfo.traffic_factor,
-            routeInfo.provider
-          );
-        });
-        
-        await Promise.allSettled(savePromises);
-        console.log(`Travel estimates saved for ${savePromises.length} hospitals for report ${report_id}`);
+        await saveTravelEstimate(
+          report_id,
+          closestHospital.hospital.hospital_id,
+          closestHospital.duration_seconds,
+          closestHospital.distance_meters,
+          closestHospital.traffic_factor,
+          closestHospital.provider
+        );
+        console.log(`Travel estimate saved for closest hospital for report ${report_id}`);
       } catch (saveError) {
-        console.warn(`Failed to save travel estimates for ${report_id}:`, saveError);
+        console.warn(`Failed to save travel estimate for ${report_id}:`, saveError);
       }
 
       const processingTime = Date.now() - startTime;
@@ -80,13 +75,23 @@ export class TravelTimeService {
         processing_time_ms: processingTime,
         hospitals_considered: hospitals.length,
         valid_routes: validRoutes.length,
-        selected_hospital: bestHospital.hospital_id,
-        travel_time_seconds: bestHospital.route_info.duration_seconds
+        selected_hospital: closestHospital.hospital.hospital_id,
+        travel_time_seconds: closestHospital.duration_seconds,
+        selection_method: 'closest_travel_time'
       });
 
       return {
-        selected_hospital: bestHospital,
-        all_options: scoredHospitals.slice(0, 3), // Return top 3
+        selected_hospital: {
+          hospital_id: closestHospital.hospital.hospital_id,
+          hospital_name: closestHospital.hospital.name,
+          route_info: {
+            duration_seconds: closestHospital.duration_seconds,
+            distance_meters: closestHospital.distance_meters,
+            provider: closestHospital.provider,
+            traffic_factor: closestHospital.traffic_factor
+          },
+          recommendation_reason: `Closest hospital by travel time (${Math.round(closestHospital.duration_seconds / 60)} minutes)`
+        },
         processing_time_ms: processingTime
       };
 
