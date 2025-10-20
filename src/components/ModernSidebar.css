@@ -162,7 +162,8 @@
   margin-top: auto;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  flex-direction: column;
 }
 
 [data-theme="dark"] .user-section {

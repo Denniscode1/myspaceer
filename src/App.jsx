@@ -2,6 +2,7 @@ import {Form} from './pages/form/form.jsx';
 import Dashboard from './pages/dashboard/dashboard.jsx';
 import DoctorLogin from './components/DoctorLogin.jsx';
 import MedicalStaffRequest from './components/MedicalStaffRequest.jsx';
+import LoadingOverlay from './components/LoadingOverlay.jsx';
 import { ThemeProvider } from './contexts/ThemeContext.jsx';
 import { apiService, mapFormDataToPatient, mapPatientToFormData } from './services/apiService.js';
 import { memo, useState, useEffect } from 'react';
@@ -14,6 +15,8 @@ const App = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showMedicalRequest, setShowMedicalRequest] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [apiError, setApiError] = useState(null);
 
   const handleFormSubmission = async (formData) => {
@@ -73,21 +76,37 @@ const App = () => {
   };
 
   const handleLogin = async (userData) => {
-    setUser(userData);
-    setShowLogin(false);
-    // Save current state to localStorage for reload persistence
-    localStorage.setItem('currentView', 'dashboard');
-    localStorage.setItem('user', JSON.stringify(userData));
-    setCurrentView('dashboard');
-    await loadPatients();
+    setIsSigningIn(true);
+    try {
+      // Simulate a brief delay for the loading state
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setUser(userData);
+      setShowLogin(false);
+      // Save current state to localStorage for reload persistence
+      localStorage.setItem('currentView', 'dashboard');
+      localStorage.setItem('user', JSON.stringify(userData));
+      setCurrentView('dashboard');
+      await loadPatients();
+    } finally {
+      setIsSigningIn(false);
+    }
   };
 
-  const handleLogout = () => {
-    // Clear saved state on logout
-    localStorage.removeItem('currentView');
-    localStorage.removeItem('user');
-    setUser(null);
-    setCurrentView('form');
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      // Simulate a brief delay for the loading state
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Clear saved state on logout
+      localStorage.removeItem('currentView');
+      localStorage.removeItem('user');
+      setUser(null);
+      setCurrentView('form');
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleCancelLogin = () => {
@@ -233,6 +252,18 @@ const App = () => {
             isLoading={isLoading}
           />
         )}
+        
+        {/* Loading Overlays */}
+        <LoadingOverlay 
+          isVisible={isSigningIn}
+          message="Signing in..."
+          icon="🔐"
+        />
+        <LoadingOverlay 
+          isVisible={isLoggingOut}
+          message="Logging out..."
+          icon="👋"
+        />
       </div>
     </ThemeProvider>
   );

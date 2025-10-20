@@ -1,9 +1,15 @@
 /* Modern Dashboard Layout */
 .modern-dashboard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
   display: flex;
-  min-height: 100vh;
   background: #f8fafc;
   color: var(--text-color);
+  z-index: 10;
+  overflow: hidden;
 }
 
 [data-theme="dark"] .modern-dashboard {
@@ -15,13 +21,15 @@
   margin-left: 280px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .content-area {
   flex: 1;
   padding: 24px;
   margin-top: 72px;
+  overflow-y: auto;
   overflow-x: auto;
 }
 
