@@ -18,11 +18,33 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*
 
 # Database files
 *.db
 *.sqlite
 *.sqlite3
+
+# Credential and key files
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+
+# Configuration files with secrets
+config/secrets.json
+config/production.json
+
+# Backup files that might contain sensitive data
+*.bak
+*.backup
+*.dump
+
+# Temporary credential files
+creds.txt
+passwords.txt
+secrets.txt
 
 # Editor directories and files
 .vscode/*

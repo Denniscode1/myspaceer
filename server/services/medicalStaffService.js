@@ -1,6 +1,7 @@
 import { db, logEvent } from '../database-enhanced.js';
 import { notificationService } from './notificationService.js';
 import crypto from 'crypto';
+import { hashPassword, comparePassword } from '../middleware/security.js';
 
 /**
  * Medical Staff Service
@@ -102,8 +103,8 @@ export class MedicalStaffService {
       }
 
       // Create default credentials that don't expire
-      const defaultPassword = 'admin123';
-      const passwordHash = crypto.createHash('sha256').update(defaultPassword).digest('hex');
+      const defaultPassword = 'MySpaceER2024!';
+      const passwordHash = await hashPassword(defaultPassword);
       const farFutureDate = new Date();
       farFutureDate.setFullYear(farFutureDate.getFullYear() + 1); // 1 year from now
 

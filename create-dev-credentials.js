@@ -1,3 +1,11 @@
+/**
+ * DEVELOPMENT ONLY - Create Developer Credentials
+ * 
+ * ⚠️  WARNING: This file creates default login credentials for development.
+ * 🔒 For production, always use strong, unique passwords and proper authentication.
+ * 🚨 Never use these default credentials in production environments!
+ */
+
 import sqlite3 from 'sqlite3';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
@@ -71,13 +79,9 @@ async function createDeveloperCredentials() {
  * Generate secure credentials for developer
  */
 function generateDevCredentials(firstName, lastName, role) {
-  // Generate username
-  const baseUsername = `${firstName.toLowerCase()}${lastName.charAt(0).toLowerCase()}_${role}`;
-  const randomSuffix = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-  const username = `${baseUsername}${randomSuffix}`;
-
-  // Generate secure password
-  const password = generateSecurePassword();
+  // Use simple, memorable credentials for development
+  const username = 'admin';
+  const password = 'MySpaceER2024!';
   const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
   // Set expiration (24 hours from now)

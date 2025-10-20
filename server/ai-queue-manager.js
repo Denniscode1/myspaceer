@@ -14,7 +14,7 @@ const dbPath = join(__dirname, 'emergency_system.db');
 const db = new sqlite3.Database(dbPath);
 
 /**
- * AI-Powered Queue Management System
+ * MedSenseAI - AI-Powered Queue Management System
  * Automatically processes patient records and manages queue placement
  */
 
@@ -67,7 +67,7 @@ class AIQueueManager {
       await initializeEnhancedDatabase();
       await this.loadHospitalData();
       await this.loadCurrentQueues();
-      console.log('🤖 AI Queue Manager initialized successfully');
+      console.log('🤖 MedSenseAI Queue Manager initialized successfully');
     } catch (error) {
       console.error('❌ Failed to initialize AI Queue Manager:', error);
       throw error;
@@ -78,7 +78,7 @@ class AIQueueManager {
    * Main function - Process new patients and add to queues
    */
   async processNewPatients() {
-    console.log('🔍 AI Queue Manager: Scanning for new patients...\n');
+    console.log('🔍 MedSenseAI: Scanning for new patients...\n');
     
     try {
       // Get all unprocessed patients
@@ -94,9 +94,9 @@ class AIQueueManager {
       for (const patient of newPatients) {
         console.log(`🤖 Processing: ${patient.name}`);
         
-        // AI Analysis
+        // MedSenseAI Analysis
         const aiAnalysis = await this.analyzePatient(patient);
-        console.log(`   📊 AI Analysis: ${aiAnalysis.criticality} priority`);
+        console.log(`   📊 MedSenseAI Analysis: ${aiAnalysis.criticality} priority`);
         console.log(`   🏥 Recommended Hospital: ${aiAnalysis.recommendedHospital.name}`);
         console.log(`   ⏱️  Estimated Wait: ${Math.round(aiAnalysis.estimatedWaitTime / 60)} minutes`);
         

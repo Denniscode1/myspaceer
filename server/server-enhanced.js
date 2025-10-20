@@ -1,8 +1,20 @@
 import express from 'express';
-import cors from 'cors';
 import bodyParser from 'body-parser';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+
+// Security middleware
+import {
+  basicSecurity,
+  generalRateLimit,
+  authRateLimit,
+  apiRateLimit,
+  sanitizeInput,
+  securityLogger,
+  secureErrorHandler,
+  validatePatientData,
+  handleValidationErrors
+} from './middleware/security.js';
 
 // Enhanced database operations
 import {
@@ -63,14 +75,19 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Apply security middleware first
+app.use(basicSecurity);
+app.use(generalRateLimit);
+app.use(securityLogger);
+app.use(sanitizeInput);
+
+// Body parsing middleware
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - IP: ${req.ip}`);
   next();
 });
 
@@ -103,8 +120,9 @@ const rateLimitMiddleware = (req, res, next) => {
   next();
 };
 
-// Apply rate limiting to sensitive endpoints
-app.use('/api/reports', rateLimitMiddleware);
+// Apply enhanced rate limiting to sensitive endpoints
+app.use('/api/medical-staff', authRateLimit);
+app.use('/api/reports', apiRateLimit);
 
 // Initialize enhanced database on server start
 initializeEnhancedDatabase()
@@ -128,7 +146,7 @@ initializeEnhancedDatabase()
  * POST /api/reports - Submit new patient report (Field Submission)
  * This is the main entry point for EMT or app submissions
  */
-app.post('/api/reports', async (req, res) => {
+app.post('/api/reports', validatePatientData, handleValidationErrors, async (req, res) => {
   const startTime = Date.now();
   
   try {
@@ -1928,15 +1946,8 @@ app.get('/api/medical-staff/credentials', async (req, res) => {
 // ERROR HANDLING AND 404
 // ====================
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err.stack);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error',
-    request_id: Date.now().toString()
-  });
-});
+// Apply secure error handler
+app.use(secureErrorHandler);
 
 // 404 handler
 app.use('*', (req, res) => {

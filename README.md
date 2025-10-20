@@ -1,16 +1,37 @@
-# React + Vite
+# MySpaceER - Emergency Response System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Powered by MedSenseAI**
 
-Currently, two official plugins are available:
+MySpaceER is an intelligent emergency response system designed for hospitals and medical facilities in Jamaica. The system automates patient triage, queue management, and resource allocation using **MedSenseAI** - our advanced AI-powered analysis engine.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Key Features
 
-## React Compiler
+- **MedSenseAI Triage Engine**: Intelligent patient classification and priority assignment
+- **Smart Queue Management**: Automated patient routing to optimal hospitals
+- **Real-time Notifications**: Email, SMS, and push notifications for patients and staff
+- **Location-based Hospital Selection**: GPS integration for nearest hospital recommendations
+- **Medical Staff Dashboard**: Comprehensive patient management interface
+- **Mobile-responsive Design**: Works on all devices
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Technology Stack
 
-## Expanding the ESLint configuration
+- **Frontend**: React + Vite
+- **Backend**: Node.js + Express
+- **Database**: SQLite3
+- **AI Engine**: MedSenseAI (Custom rule-based + NLP)
+- **Real-time Updates**: WebSocket integration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Quick Start
+
+1. Install dependencies: `npm install`
+2. Start the server: `cd server && node server-enhanced.js`
+3. Start the frontend: `npm run dev`
+4. Create developer credentials: `node create-dev-credentials.js`
+
+## MedSenseAI Features
+
+- **Intelligent Triage**: Analyzes patient symptoms and conditions
+- **Priority Classification**: Critical, High, Moderate, Low priority levels
+- **Hospital Optimization**: Recommends best hospital based on capacity and location
+- **Wait Time Estimation**: Predicts queue wait times
+- **Confidence Scoring**: AI confidence in analysis decisions
