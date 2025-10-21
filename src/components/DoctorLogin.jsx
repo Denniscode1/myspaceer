@@ -28,8 +28,33 @@ const DoctorLogin = ({ onLogin, onCancel }) => {
     setIsLoading(true);
     setError('');
 
+    // Demo credentials for testing (remove in production)
+    const demoCredentials = {
+      admin: { password: 'MySpaceER2024!', role: 'doctor' },
+      doctor: { password: 'doctor123', role: 'doctor' },
+      nurse: { password: 'nurse123', role: 'nurse' }
+    };
+
     try {
-      // Validate credentials with the backend
+      // Check demo credentials first (for testing)
+      const demo = demoCredentials[credentials.username.toLowerCase()];
+      if (demo && demo.password === credentials.password) {
+        // Demo login successful
+        onLogin({
+          id: 1,
+          username: credentials.username,
+          role: credentials.role,
+          firstName: credentials.username === 'admin' ? 'Demo' : credentials.role.charAt(0).toUpperCase() + credentials.role.slice(1),
+          lastName: 'User',
+          email: `${credentials.username}@myspaceer.demo`,
+          department: credentials.role === 'doctor' ? 'Emergency Medicine' : 'Emergency Nursing',
+          loginTime: new Date().toISOString()
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Try backend validation as fallback
       const response = await fetch('/api/medical-staff/validate-login', {
         method: 'POST',
         headers: {
@@ -50,10 +75,11 @@ const DoctorLogin = ({ onLogin, onCancel }) => {
           loginTime: new Date().toISOString()
         });
       } else {
-        setError(result.message || 'Invalid credentials or access expired.');
+        setError('Invalid credentials. Try demo credentials: admin/MySpaceER2024!, doctor/doctor123, or nurse/nurse123');
       }
     } catch (err) {
-      setError('Login failed. Please check your connection and try again.');
+      // If backend is not available, show demo credentials hint
+      setError('Demo credentials: admin/MySpaceER2024!, doctor/doctor123, or nurse/nurse123');
     } finally {
       setIsLoading(false);
     }
@@ -147,8 +173,19 @@ const DoctorLogin = ({ onLogin, onCancel }) => {
         </form>
 
         <div className="login-info">
+          <div className="demo-credentials">
+            <p className="access-notice">
+              <strong>🧪 Demo Credentials for Testing:</strong>
+            </p>
+            <div className="demo-creds-list">
+              <div><strong>Admin:</strong> admin / MySpaceER2024!</div>
+              <div><strong>Doctor:</strong> doctor / doctor123</div>
+              <div><strong>Nurse:</strong> nurse / nurse123</div>
+            </div>
+          </div>
+          <hr style={{margin: '15px 0', opacity: 0.3}} />
           <p className="access-notice">
-            Don't have login credentials?
+            Need production access?
           </p>
           <button 
             type="button" 
