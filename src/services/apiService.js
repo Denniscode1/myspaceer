@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://your-railway-app.up.railway.app/api' 
+  : 'http://localhost:3001/api';
 
 // Helper function to handle API responses
 const handleResponse = async (response) => {

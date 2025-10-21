@@ -1,0 +1,5 @@
+[start]
+cmd = "cd server && npm start"
+
+[variables]
+NODE_ENV = "production"

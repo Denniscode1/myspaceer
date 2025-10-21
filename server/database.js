@@ -6,7 +6,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Create database connection
-const dbPath = join(__dirname, 'patients.db');
+// Use persistent storage path for production
+const dbPath = process.env.NODE_ENV === 'production' 
+  ? '/data/patients.db'  // Railway persistent volume
+  : join(__dirname, 'patients.db');
+  
+console.log('Database path:', dbPath);
 const db = new sqlite3.Database(dbPath);
 
 // Initialize database schema
