@@ -5,7 +5,7 @@ import { isNewUser } from '../../utils/locationPreferences.js';
 import '../../styles/theme.css';
 import './Form.css';
 
-const PatientTriageForm = ({ onSubmit, onDoctorAccess, isLoading: parentLoading }) => {
+const PatientTriageForm = ({ onSubmit, onDoctorAccess, onBackToLanding, isLoading: parentLoading }) => {
   const [formData, setFormData] = useState({
     name: '',
     gender: '',
@@ -524,8 +524,17 @@ const PatientTriageForm = ({ onSubmit, onDoctorAccess, isLoading: parentLoading 
           </div>
       </form>
       
-      {/* Doctor Access Footer */}
+      {/* Footer Navigation */}
       <div className="form-footer">
+        {onBackToLanding && (
+          <button 
+            type="button"
+            className="back-to-landing-btn"
+            onClick={onBackToLanding}
+          >
+            ← Back to Home
+          </button>
+        )}
         {onDoctorAccess && (
           <button 
             type="button"

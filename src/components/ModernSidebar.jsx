@@ -29,7 +29,6 @@ const ModernSidebar = ({ user, activeTab, onTabChange, onLogout, onBackToForm })
       {/* Logo/Brand Section */}
       <div className="sidebar-header">
         <div className="brand">
-          <div className="brand-icon">🏥</div>
           <div className="brand-text">
             <h3>MYSpaceER</h3>
             <span>Emergency Response</span>

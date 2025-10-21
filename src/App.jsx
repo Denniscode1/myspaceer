@@ -3,13 +3,14 @@ import Dashboard from './pages/dashboard/dashboard.jsx';
 import DoctorLogin from './components/DoctorLogin.jsx';
 import MedicalStaffRequest from './components/MedicalStaffRequest.jsx';
 import LoadingOverlay from './components/LoadingOverlay.jsx';
+import LandingPage from './components/LandingPage.jsx';
 import { ThemeProvider } from './contexts/ThemeContext.jsx';
 import { apiService, mapFormDataToPatient, mapPatientToFormData } from './services/apiService.js';
 import { memo, useState, useEffect } from 'react';
 import './styles/theme.css';
 
 const App = () => {
-  const [currentView, setCurrentView] = useState('form');
+  const [currentView, setCurrentView] = useState('landing');
   const [submissions, setSubmissions] = useState([]);
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
@@ -72,6 +73,17 @@ const App = () => {
     // Clear saved state when going back to form
     localStorage.removeItem('currentView');
     localStorage.removeItem('user');
+    setCurrentView('form');
+  };
+
+  const showLanding = () => {
+    // Clear saved state when going back to landing
+    localStorage.removeItem('currentView');
+    localStorage.removeItem('user');
+    setCurrentView('landing');
+  };
+
+  const handlePatientAccess = () => {
     setCurrentView('form');
   };
 
@@ -162,6 +174,8 @@ const App = () => {
       setUser(userData);
       setCurrentView('dashboard');
       loadPatients();
+    } else if (savedView === 'form') {
+      setCurrentView('form');
     }
     
     // Check if API is available on component mount
@@ -235,16 +249,23 @@ const App = () => {
           />
         )}
         
-        {currentView === 'form' ? (
+        {currentView === 'landing' ? (
+          <LandingPage 
+            onPatientAccess={handlePatientAccess}
+            onDoctorAccess={showDashboard}
+          />
+        ) : currentView === 'form' ? (
           <Form 
             onSubmit={handleFormSubmission}
             onDoctorAccess={showDashboard}
+            onBackToLanding={showLanding}
             isLoading={isLoading}
           />
         ) : (
           <Dashboard 
             submissions={submissions}
             onBackToForm={showForm}
+            onBackToLanding={showLanding}
             onLogout={handleLogout}
             onRefresh={loadPatients}
             onDeletePatient={handleDeletePatient}

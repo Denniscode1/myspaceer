@@ -8,7 +8,7 @@ import QueueManagement from '../../components/QueueManagement.jsx';
 import TreatedSection from '../../components/TreatedSection.jsx';
 import { getLocationDisplayPreference, LocationDisplayFormat } from '../../utils/locationPreferences.js';
 
-const Dashboard = ({ submissions, onBackToForm, onLogout, onRefresh, user, isLoading, onDeletePatient }) => {
+const Dashboard = ({ submissions, onBackToForm, onBackToLanding, onLogout, onRefresh, user, isLoading, onDeletePatient }) => {
   const [activeTab, setActiveTab] = useState('patients');
   const [notifications, setNotifications] = useState([]);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
