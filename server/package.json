@@ -7,7 +7,11 @@
   "scripts": {
     "start": "node server-enhanced.js",
     "dev": "node --watch server-enhanced.js",
-    "start:legacy": "node server.js"
+    "start:legacy": "node server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "migrate": "node migrations/run-migration.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -22,6 +26,7 @@
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
+    "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.9",
@@ -29,5 +34,9 @@
     "twilio": "^5.10.3",
     "ws": "^8.14.2",
     "xss": "^1.0.15"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "vitest": "^3.2.4"
   }
 }
