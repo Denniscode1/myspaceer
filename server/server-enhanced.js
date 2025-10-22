@@ -2042,23 +2042,25 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Enhanced Emergency Triage Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
-  console.log('\n🚨 Emergency Triage System Features:');
-  console.log('   ✅ Automated triage with deterministic rules + ML');
-  console.log('   ✅ Hospital selection with travel time optimization');
-  console.log('   ✅ Priority queue management');
-  console.log('   ✅ Real-time event logging and tracking');
-  console.log('   ✅ Backward compatibility with existing frontend');
-  console.log('\n📋 Key API Endpoints:');
-  console.log('   POST /api/reports - Submit new patient report');
-  console.log('   GET  /api/reports - List all reports with triage data');
-  console.log('   GET  /api/health  - System health and status');
-  console.log('   GET  /api/stats   - System statistics and metrics\n');
-});
+// Only start server if this is the main module (not imported)
+if (import.meta.url === `file://${process.argv[1]}` || process.env.START_SERVER === 'true') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Enhanced Emergency Triage Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
+    console.log('\n🚨 Emergency Triage System Features:');
+    console.log('   ✅ Automated triage with deterministic rules + ML');
+    console.log('   ✅ Hospital selection with travel time optimization');
+    console.log('   ✅ Priority queue management');
+    console.log('   ✅ Real-time event logging and tracking');
+    console.log('   ✅ Backward compatibility with existing frontend');
+    console.log('\n📋 Key API Endpoints:');
+    console.log('   POST /api/reports - Submit new patient report');
+    console.log('   GET  /api/reports - List all reports with triage data');
+    console.log('   GET  /api/health  - System health and status');
+    console.log('   GET  /api/stats   - System statistics and metrics\n');
+  });
+}
 
 export default app;
