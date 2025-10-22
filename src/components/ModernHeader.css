@@ -191,6 +191,17 @@
   height: 24px !important;
 }
 
+.notification-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  color: #4b5563;
+  stroke: currentColor;
+}
+
+[data-theme="dark"] .notification-btn svg {
+  color: #9ca3af;
+}
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

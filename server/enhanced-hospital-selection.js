@@ -52,11 +52,19 @@ export class EnhancedHospitalSelection {
         };
       });
 
-      // Filter hospitals within reasonable distance and sort by priority score
-      const filteredHospitals = hospitalWithDistances
-        .filter(hospital => hospital.distance_km <= this.radiusKm)
-        .sort((a, b) => b.priority_score - a.priority_score)
-        .slice(0, this.maxResults);
+    // Filter hospitals within reasonable distance and sort by DISTANCE FIRST, then priority score
+    const filteredHospitals = hospitalWithDistances
+      .filter(hospital => hospital.distance_km <= this.radiusKm)
+      .sort((a, b) => {
+        // Primary sort: distance (closest first)
+        const distanceDiff = a.distance_km - b.distance_km;
+        if (Math.abs(distanceDiff) > 5) { // If distance difference > 5km, prioritize distance
+          return distanceDiff;
+        }
+        // Secondary sort: priority score (only when distances are similar)
+        return b.priority_score - a.priority_score;
+      })
+      .slice(0, this.maxResults);
 
       // Log the selection event
       logEvent('hospitals_with_distances_calculated', 'hospital_selection', 'system', null, null, {
@@ -155,38 +163,40 @@ export class EnhancedHospitalSelection {
 
   /**
    * Calculate hospital priority score based on multiple factors
+   * DISTANCE is the PRIMARY factor - closest hospital gets highest priority
    */
   calculateHospitalScore(hospital, distanceKm, travelTimeMinutes, criticality = 'moderate') {
     let score = 100; // Base score
 
-    // Distance factor (closer is better)
-    const distanceScore = Math.max(0, 50 - (distanceKm * 2));
+    // Distance factor (HEAVILY WEIGHTED - closer is MUCH better)
+    // This ensures nearby hospitals always rank higher than distant ones
+    const distanceScore = Math.max(0, 200 - (distanceKm * 5)); // 5x penalty per km
     score += distanceScore;
 
-    // Travel time factor
+    // Travel time factor (secondary to distance)
     const timeScore = Math.max(0, 30 - travelTimeMinutes);
     score += timeScore;
 
-    // Capacity factor (prefer hospitals with availability)
+    // Capacity factor (prefer hospitals with availability) - MINOR impact
     const utilizationRate = (hospital.current_load || 0) / hospital.capacity;
     if (utilizationRate < 0.7) {
-      score += 20; // Good availability
+      score += 10; // Reduced from 20
     } else if (utilizationRate < 0.9) {
-      score += 10; // Moderate availability
+      score += 5; // Reduced from 10
     }
     // No bonus for overloaded hospitals
 
-    // Specialty matching
+    // Specialty matching - MINOR impact
     const specialtyScore = this.getSpecialtyScore(hospital.specialties, criticality);
-    score += specialtyScore;
+    score += specialtyScore * 0.5; // Reduced impact
 
-    // Hospital size/capability factor
+    // Hospital size/capability factor - MINIMAL impact
     if (hospital.capacity > 300) {
-      score += 15; // Large comprehensive hospital
+      score += 5; // Reduced from 15
     } else if (hospital.capacity > 150) {
-      score += 10; // Medium hospital
+      score += 3; // Reduced from 10
     } else if (hospital.capacity < 80) {
-      score -= 5; // Small hospital may have limited capabilities
+      score -= 2; // Reduced penalty from 5
     }
 
     return Math.round(score);

@@ -48,22 +48,32 @@ export class HospitalSelector {
         )
       }));
 
-      // Sort by distance only (closest first)
+      // Sort by distance only (closest first) - STRICT DISTANCE PRIORITY
       const sortedHospitals = hospitalDistances.sort((a, b) => a.distance - b.distance);
 
-      // Select the closest hospital
+      // Log top 3 closest hospitals for debugging
+      console.log(`🏥 Top 3 closest hospitals to ${latitude.toFixed(4)}, ${longitude.toFixed(4)}:`);
+      sortedHospitals.slice(0, 3).forEach((h, idx) => {
+        console.log(`   ${idx + 1}. ${h.name} - ${h.distance.toFixed(2)}km (${h.travelTime} min)`);
+      });
+
+      // Select the closest hospital - NO OVERRIDES
       const closestHospital = sortedHospitals[0];
 
       logEvent('hospital_auto_selected', 'hospital_assignment', report_id, null, null, {
         selected_hospital: closestHospital.hospital_id,
+        hospital_name: closestHospital.name,
         distance_km: closestHospital.distance,
         travel_time_minutes: closestHospital.travelTime,
-        selection_method: 'closest_distance'
+        selection_method: 'strict_nearest_distance',
+        patient_location: { latitude, longitude }
       });
+
+      console.log(`✅ Selected: ${closestHospital.name} (${closestHospital.distance.toFixed(2)}km)`);
 
       return {
         selected_hospital: closestHospital,
-        selection_reason: `Closest hospital at ${closestHospital.distance.toFixed(2)} km away`
+        selection_reason: `Closest hospital at ${closestHospital.distance.toFixed(2)} km away (${closestHospital.travelTime} min travel time)`
       };
 
     } catch (error) {

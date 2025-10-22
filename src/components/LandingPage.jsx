@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './LandingPage.css';
 import logoImage from '/myspace.png';
+import headerPic from '../assets/Screenshot 2025-10-21 215140.png'
 
 const LandingPage = ({ onPatientAccess, onDoctorAccess }) => {
   const [isLoadingPatient, setIsLoadingPatient] = useState(false);
@@ -126,11 +127,8 @@ const LandingPage = ({ onPatientAccess, onDoctorAccess }) => {
           </div>
           <div className="hero-image">
             <div className="image-placeholder">
-              <div className="doctor-icon">👨‍⚕️</div>
-              <div className="patients-icon">👨‍👩‍👧</div>
-              <div className="success-badge">
-                <div className="check-icon">✓</div>
-                <span>150K+ Patients Served</span>
+              <div className="header-img">
+                <img className='pic' src={headerPic} alt="dashboard display" />
               </div>
             </div>
           </div>

@@ -179,16 +179,8 @@
   align-items: center;
 }
 
-.image-placeholder {
-  position: relative;
-  width: 400px;
-  height: 300px;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+.pic{
+  width: 600px;
 }
 
 .doctor-icon {

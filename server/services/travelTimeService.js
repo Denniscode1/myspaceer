@@ -51,8 +51,15 @@ export class TravelTimeService {
       // Sort by travel time only (fastest first)
       const sortedHospitals = validRoutes.sort((a, b) => a.duration_seconds - b.duration_seconds);
       
+      // Log top 3 for debugging
+      console.log(`🏥 Top 3 fastest routes:`);
+      sortedHospitals.slice(0, 3).forEach((h, idx) => {
+        console.log(`   ${idx + 1}. ${h.hospital.name} - ${Math.round(h.duration_seconds / 60)} min`);
+      });
+      
       // Select closest hospital by travel time
       const closestHospital = sortedHospitals[0];
+      console.log(`✅ Selected: ${closestHospital.hospital.name}`);
 
       // Save travel estimate for closest hospital only
       try {
