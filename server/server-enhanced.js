@@ -1975,64 +1975,14 @@ app.get('/api/medical-staff/credentials', async (req, res) => {
 });
 
 // ====================
-// ROOT AND WELCOME ENDPOINTS
-// ====================
-
-/**
- * GET / - Welcome endpoint for Railway URL
- */
-app.get('/', (req, res) => {
-  res.json({
-    name: 'MySpaceER Enhanced Emergency Triage System',
-    status: 'operational',
-    version: '2.0.0',
-    message: 'Emergency Response System Backend - Enhanced Version',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    features: [
-      'automated_triage',
-      'hospital_selection', 
-      'queue_management',
-      'real_time_tracking',
-      'patient_notifications'
-    ],
-    endpoints: {
-      health: '/api/health',
-      reports: '/api/reports',
-      patients: '/api/patients',
-      hospitals: '/api/hospitals',
-      queue: '/api/queue/:hospitalId',
-      stats: '/api/stats'
-    }
-  });
-});
-
-// ====================
-// ERROR HANDLING AND 404
+// ERROR HANDLING
 // ====================
 
 // Apply secure error handler
 app.use(secureErrorHandler);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Endpoint not found',
-    available_endpoints: [
-      'POST /api/reports - Submit patient report',
-      'GET /api/reports - List all reports',
-      'GET /api/reports/:id - Get specific report',
-      'PATCH /api/reports/:id/status - Update report status',
-      'POST /api/reports/:id/location - Update location',
-      'GET /api/queue/:hospitalId - Get hospital queue',
-      'POST /api/queue/update - Complete patient treatment and update queue',
-      'POST /api/queue/notify-all/:hospitalId - Send updates to all patients in queue',
-      'GET /api/health - Health check',
-      'GET /api/stats - System statistics'
-    ]
-  });
-});
+// Note: Root route and catch-all 404 handler are managed by the main server.js
+// This allows the frontend to be served from the root while API routes work normally
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

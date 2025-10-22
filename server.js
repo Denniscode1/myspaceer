@@ -30,57 +30,29 @@ if (process.env.NODE_ENV === 'production') {
   console.log(`📦 Serving static files from: ${distPath}`);
 }
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    success: true, 
-    message: 'MySpaceER API is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
-});
-
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    name: 'MySpaceER API',
-    message: 'Emergency Response System Backend',
-    status: 'running',
-    endpoints: {
-      health: '/api/health',
-      reports: '/api/reports',
-      patients: '/api/patients'
-    }
-  });
-});
-
-// Import and mount the enhanced server
+// Import and mount the enhanced server API routes
 try {
   // Import the enhanced server app
   const { default: enhancedApp } = await import('./server/server-enhanced.js');
   
-  // Remove the basic health endpoint since enhanced server has it
-  app._router = undefined;
-  
-  // Re-setup basic middleware
-  app.use(cors({
-    origin: [
-      'http://localhost:5173',
-      'https://denniscode1.github.io',
-      process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null,
-      process.env.FRONTEND_URL
-    ].filter(Boolean),
-    credentials: true
-  }));
-  
-  // Mount the enhanced server routes
-  app.use('/', enhancedApp);
+  // Mount ALL enhanced server routes (already includes /api/* endpoints)
+  app.use(enhancedApp);
   
   console.log('✅ Enhanced server loaded successfully');
   
 } catch (error) {
   console.error('❌ Could not load enhanced server:', error);
   console.log('🔄 Running in basic mode with fallback endpoints');
+  
+  // Fallback health endpoint
+  app.get('/api/health', (req, res) => {
+    res.json({ 
+      success: true, 
+      message: 'MySpaceER API is running (fallback)',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+  });
   
   // Fallback endpoints
   app.get('/api/reports', (req, res) => {
@@ -112,21 +84,28 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Serve frontend for all other routes in production (SPA fallback)
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, 'dist', 'index.html'));
-  });
-} else {
-  // 404 handler for development
-  app.use('*', (req, res) => {
+// Serve frontend for all non-API routes (SPA fallback)
+// This handles all routes that aren't /api/* routes
+app.get('*', (req, res) => {
+  // Only serve HTML for non-API routes
+  if (!req.path.startsWith('/api')) {
+    if (process.env.NODE_ENV === 'production') {
+      res.sendFile(join(__dirname, 'dist', 'index.html'));
+    } else {
+      res.json({
+        message: 'Development mode - use Vite dev server for frontend',
+        api_base: `http://localhost:${PORT}/api`
+      });
+    }
+  } else {
+    // 404 for unknown API routes
     res.status(404).json({
       success: false,
-      error: 'Endpoint not found',
+      error: 'API endpoint not found',
       path: req.originalUrl
     });
-  });
-}
+  }
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 MySpaceER API server running on port ${PORT}`);
