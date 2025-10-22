@@ -28,14 +28,15 @@ const DoctorLogin = ({ onLogin, onCancel }) => {
     setIsLoading(true);
     setError('');
 
-    // Demo credentials for testing (only when enabled)
-    const showDemoCredentials = import.meta.env.VITE_SHOW_DEMO_CREDENTIALS === 'true' || 
-                                (import.meta.env.DEV || import.meta.env.MODE === 'development');
-    const demoCredentials = showDemoCredentials ? {
+    // Demo credentials for testing (enabled in development or when explicitly set)
+    const showDemoCredentials = import.meta.env.DEV || 
+                                import.meta.env.MODE === 'development' ||
+                                import.meta.env.VITE_SHOW_DEMO_CREDENTIALS === 'true';
+    const demoCredentials = {
       admin: { password: 'MySpaceER2024!', role: 'doctor' },
       doctor: { password: 'doctor123', role: 'doctor' },
       nurse: { password: 'nurse123', role: 'nurse' }
-    } : {};
+    };
 
     try {
       // Check demo credentials first (only when enabled)
