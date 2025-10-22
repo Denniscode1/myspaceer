@@ -80,11 +80,16 @@ app.use((req, res, next) => {
   const allowedOrigins = [
     'http://localhost:5173', // Vite dev server
     'https://denniscode1.github.io', // GitHub Pages
-    process.env.FRONTEND_URL // Railway/production frontend
+    'https://myspaceer-production.up.railway.app', // Explicit Railway URL
+    process.env.FRONTEND_URL, // Railway/production frontend
+    process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null,
+    'https://*.railway.app', // Railway wildcard
+    'https://*.up.railway.app' // Railway app domains
   ].filter(Boolean);
   
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  if (allowedOrigins.includes(origin) || 
+      (origin && (origin.includes('railway.app') || origin.includes('up.railway.app')))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   
@@ -1967,6 +1972,39 @@ app.get('/api/medical-staff/credentials', async (req, res) => {
 });
 
 // ====================
+// ROOT AND WELCOME ENDPOINTS
+// ====================
+
+/**
+ * GET / - Welcome endpoint for Railway URL
+ */
+app.get('/', (req, res) => {
+  res.json({
+    name: 'MySpaceER Enhanced Emergency Triage System',
+    status: 'operational',
+    version: '2.0.0',
+    message: 'Emergency Response System Backend - Enhanced Version',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    features: [
+      'automated_triage',
+      'hospital_selection', 
+      'queue_management',
+      'real_time_tracking',
+      'patient_notifications'
+    ],
+    endpoints: {
+      health: '/api/health',
+      reports: '/api/reports',
+      patients: '/api/patients',
+      hospitals: '/api/hospitals',
+      queue: '/api/queue/:hospitalId',
+      stats: '/api/stats'
+    }
+  });
+});
+
+// ====================
 // ERROR HANDLING AND 404
 // ====================
 
@@ -2005,16 +2043,18 @@ process.on('SIGINT', () => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Enhanced Emergency Triage Server running on http://localhost:${PORT}`);
-  console.log(`API Documentation available at http://localhost:${PORT}/api`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Enhanced Emergency Triage Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
   console.log('\n🚨 Emergency Triage System Features:');
   console.log('   ✅ Automated triage with deterministic rules + ML');
   console.log('   ✅ Hospital selection with travel time optimization');
   console.log('   ✅ Priority queue management');
   console.log('   ✅ Real-time event logging and tracking');
   console.log('   ✅ Backward compatibility with existing frontend');
-  console.log('\n📋 Available Endpoints:');
+  console.log('\n📋 Key API Endpoints:');
   console.log('   POST /api/reports - Submit new patient report');
   console.log('   GET  /api/reports - List all reports with triage data');
   console.log('   GET  /api/health  - System health and status');

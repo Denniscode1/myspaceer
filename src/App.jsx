@@ -84,6 +84,7 @@ const App = () => {
   };
 
   const handlePatientAccess = () => {
+    localStorage.setItem('currentView', 'form');
     setCurrentView('form');
   };
 
@@ -115,7 +116,7 @@ const App = () => {
       localStorage.removeItem('currentView');
       localStorage.removeItem('user');
       setUser(null);
-      setCurrentView('form');
+      setCurrentView('landing');
     } finally {
       setIsLoggingOut(false);
     }
@@ -163,9 +164,9 @@ const App = () => {
     }
   };
 
-  // Persist dashboard state on reload
+  // App initialization
   useEffect(() => {
-    // Check if user was on dashboard before reload
+    // Check if user was on a specific page before reload
     const savedView = localStorage.getItem('currentView');
     const savedUser = localStorage.getItem('user');
     
@@ -176,6 +177,10 @@ const App = () => {
       loadPatients();
     } else if (savedView === 'form') {
       setCurrentView('form');
+    } else {
+      // Default to landing page for new visits
+      setCurrentView('landing');
+      setUser(null);
     }
     
     // Check if API is available on component mount

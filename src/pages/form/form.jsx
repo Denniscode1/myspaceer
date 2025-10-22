@@ -2,6 +2,7 @@ import { memo, useState, useCallback, useEffect } from 'react';
 import LocationPermission from '../../components/LocationPermission.jsx';
 import ThemeToggle from '../../components/ThemeToggle.jsx';
 import { isNewUser } from '../../utils/locationPreferences.js';
+import logoImage from '/myspace.png';
 import '../../styles/theme.css';
 import './Form.css';
 
@@ -185,6 +186,7 @@ const PatientTriageForm = ({ onSubmit, onDoctorAccess, onBackToLanding, isLoadin
   };
 
   if (isSubmitted) {
+
     return (
       <div className="form-container">
         <div className="form-content">
@@ -219,14 +221,7 @@ const PatientTriageForm = ({ onSubmit, onDoctorAccess, onBackToLanding, isLoadin
         <div className="form-header">
           <div className="logo-container">
             <div className="logo">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                <rect x="16" y="8" width="8" height="24" rx="2" fill="#FF4081"/>
-                <rect x="8" y="16" width="24" height="8" rx="2" fill="#FF4081"/>
-              </svg>
-            </div>
-            <div className="brand-info">
-              <h1>MYSPACE-ER</h1>
-              <p>PATIENT QUEUE MANAGEMENT SYSTEM</p>
+              <img src={logoImage} alt="MySpaceER" width="70" />
             </div>
           </div>
           <div className="header-controls">
@@ -418,23 +413,23 @@ const PatientTriageForm = ({ onSubmit, onDoctorAccess, onBackToLanding, isLoadin
                     <input
                       type="radio"
                       name="transportationMode"
-                      value="conscious"
-                      checked={formData.transportationMode === 'conscious'}
+                      value="ambulance"
+                      checked={formData.transportationMode === 'ambulance'}
                       onChange={(e) => handleInputChange('transportationMode', e.target.value)}
                     />
                     <span className="radio-circle"></span>
-                    Conscious
+                    Ambulance
                   </label>
                   <label className="radio-option">
                     <input
                       type="radio"
                       name="transportationMode"
-                      value="unconscious"
-                      checked={formData.transportationMode === 'unconscious'}
+                      value="self_drive"
+                      checked={formData.transportationMode === 'self_drive'}
                       onChange={(e) => handleInputChange('transportationMode', e.target.value)}
                     />
                     <span className="radio-circle"></span>
-                    Unconscious
+                    Self Drive
                   </label>
                 </div>
                 {errors.transportationMode && <span className="error-text">{errors.transportationMode}</span>}

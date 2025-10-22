@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './LandingPage.css';
+import logoImage from '/myspace.png';
 
 const LandingPage = ({ onPatientAccess, onDoctorAccess }) => {
   const [isLoadingPatient, setIsLoadingPatient] = useState(false);
@@ -58,7 +59,7 @@ const LandingPage = ({ onPatientAccess, onDoctorAccess }) => {
       <nav className="landing-nav">
         <div className="nav-content">
           <div className="nav-brand">
-            <img src="/myspace.png" alt="MySpaceER" className="brand-logo" />
+            <img src={logoImage} alt="MySpaceER" className="brand-logo" />
           </div>
           <div className="nav-links">
             <button 
@@ -316,7 +317,7 @@ const LandingPage = ({ onPatientAccess, onDoctorAccess }) => {
         <div className="footer-content">
           <div className="footer-brand">
             <div className="footer-logo">
-              <img src="/myspace.png" alt="MySpaceER" className="footer-brand-logo" />
+              <img src={logoImage} alt="MySpaceER" className="footer-brand-logo" />
             </div>
             <p className="footer-tagline">
               Providing exceptional emergency care through intelligent technology.

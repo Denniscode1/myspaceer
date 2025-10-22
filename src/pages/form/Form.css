@@ -35,6 +35,11 @@
   gap: 15px;
 }
 
+.logo img {
+  height: 70px !important;
+  width: auto !important;
+}
+
 .header-controls {
   position: absolute;
   top: 20px;
