@@ -4,6 +4,9 @@ import TreatmentCompletionModal from './TreatmentCompletionModal.jsx';
 import LocationDetector from './LocationDetector.jsx';
 import LocationSettings from './LocationSettings.jsx';
 
+// API base URL - use relative path in production, localhost in dev
+const API_BASE_URL = import.meta.env.PROD ? '/api' : 'http://localhost:3001/api';
+
 const QueueManagement = ({ user, onNotificationSent }) => {
   const [queueData, setQueueData] = useState([]);
   const [hospitals, setHospitals] = useState([]);
@@ -27,7 +30,7 @@ const QueueManagement = ({ user, onNotificationSent }) => {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/queue/${selectedHospital}`);
+      const response = await fetch(`${API_BASE_URL}/queue/${selectedHospital}`);
       const data = await response.json();
       
       if (data.success) {
@@ -44,7 +47,7 @@ const QueueManagement = ({ user, onNotificationSent }) => {
   // Fetch hospitals with location-based enhancements
   const fetchHospitals = async (locationData = null) => {
     try {
-      let hospitalUrl = 'http://localhost:3001/api/hospitals';
+      let hospitalUrl = `${API_BASE_URL}/hospitals`;
       
       // Use provided location data or stored user location
       const location = locationData || userLocation;
@@ -124,7 +127,7 @@ const QueueManagement = ({ user, onNotificationSent }) => {
   // Update patient status
   const updatePatientStatus = async (reportId, newStatus) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/reports/${reportId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/reports/${reportId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
@@ -162,7 +165,7 @@ const QueueManagement = ({ user, onNotificationSent }) => {
   // Move patient in queue
   const movePatientInQueue = async (reportId, direction) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/queue/${reportId}/move`, {
+      const response = await fetch(`${API_BASE_URL}/queue/${reportId}/move`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -200,7 +203,7 @@ const QueueManagement = ({ user, onNotificationSent }) => {
   const startTreatment = async (reportId) => {
     try {
       // Only update patient status to "In Treatment" - keep them in queue
-      const statusUpdateResponse = await fetch(`http://localhost:3001/api/reports/${reportId}/status`, {
+      const statusUpdateResponse = await fetch(`${API_BASE_URL}/reports/${reportId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
@@ -243,7 +246,7 @@ const QueueManagement = ({ user, onNotificationSent }) => {
   // Handle treatment completion
   const handleTreatmentCompletion = async (completionData) => {
     try {
-      const response = await fetch('http://localhost:3001/api/complete-treatment', {
+      const response = await fetch(`${API_BASE_URL}/complete-treatment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -282,7 +285,7 @@ const QueueManagement = ({ user, onNotificationSent }) => {
       // Send email notification if email provided
       if (doctorContact.email) {
         notificationPromises.push(
-          fetch('http://localhost:3001/api/notifications/send', {
+          fetch(`${API_BASE_URL}/notifications/send`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -301,7 +304,7 @@ const QueueManagement = ({ user, onNotificationSent }) => {
       // Send SMS notification if phone provided
       if (doctorContact.phone) {
         notificationPromises.push(
-          fetch('http://localhost:3001/api/notifications/send', {
+          fetch(`${API_BASE_URL}/notifications/send`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

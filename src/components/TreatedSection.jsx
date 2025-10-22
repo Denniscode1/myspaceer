@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './TreatedSection.css';
 
+// API base URL - use relative path in production, localhost in dev
+const API_BASE_URL = import.meta.env.PROD ? '/api' : 'http://localhost:3001/api';
+
 const TreatedSection = ({ user }) => {
   const [treatedPatients, setTreatedPatients] = useState([]);
   const [hospitals, setHospitals] = useState([]);
@@ -28,7 +31,7 @@ const TreatedSection = ({ user }) => {
       if (dateFilter.to) queryParams.append('date_to', dateFilter.to);
       if (outcomeFilter) queryParams.append('outcome', outcomeFilter);
 
-      const response = await fetch(`http://localhost:3001/api/treated-patients?${queryParams}`);
+      const response = await fetch(`${API_BASE_URL}/treated-patients?${queryParams}`);
       const data = await response.json();
       
       if (data.success) {
@@ -44,7 +47,7 @@ const TreatedSection = ({ user }) => {
   // Fetch hospitals
   const fetchHospitals = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/hospitals');
+      const response = await fetch(`${API_BASE_URL}/hospitals`);
       const data = await response.json();
       
       if (data.success) {
@@ -59,7 +62,7 @@ const TreatedSection = ({ user }) => {
   const fetchStats = async () => {
     try {
       const queryParams = selectedHospital ? `?hospital_id=${selectedHospital}` : '';
-      const response = await fetch(`http://localhost:3001/api/treated-patients/stats${queryParams}`);
+      const response = await fetch(`${API_BASE_URL}/treated-patients/stats${queryParams}`);
       const data = await response.json();
       
       if (data.success) {
