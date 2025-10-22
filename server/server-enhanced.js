@@ -75,6 +75,9 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy for Heroku (behind reverse proxy)
+app.set('trust proxy', 1);
+
 // CORS configuration for production
 app.use((req, res, next) => {
   const allowedOrigins = [
