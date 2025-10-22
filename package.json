@@ -9,8 +9,7 @@
     "start": "node server.js",
     "server:enhanced": "cd server && npm start",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "heroku-postbuild": "npm run build && cd server && npm install"
+    "preview": "vite preview"
   },
   "engines": {
     "node": ">=18.0.0"

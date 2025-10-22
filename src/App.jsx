@@ -1,13 +1,15 @@
-import {Form} from './pages/form/form.jsx';
-import Dashboard from './pages/dashboard/dashboard.jsx';
-import DoctorLogin from './components/DoctorLogin.jsx';
-import MedicalStaffRequest from './components/MedicalStaffRequest.jsx';
-import LoadingOverlay from './components/LoadingOverlay.jsx';
-import LandingPage from './components/LandingPage.jsx';
+import { lazy, Suspense, memo, useState, useEffect } from 'react';
 import { ThemeProvider } from './contexts/ThemeContext.jsx';
 import { apiService, mapFormDataToPatient, mapPatientToFormData } from './services/apiService.js';
-import { memo, useState, useEffect } from 'react';
+import LoadingOverlay from './components/LoadingOverlay.jsx';
 import './styles/theme.css';
+
+// Lazy load heavy components for better initial load performance
+const Form = lazy(() => import('./pages/form/form.jsx').then(module => ({ default: module.Form })));
+const Dashboard = lazy(() => import('./pages/dashboard/dashboard.jsx'));
+const DoctorLogin = lazy(() => import('./components/DoctorLogin.jsx'));
+const MedicalStaffRequest = lazy(() => import('./components/MedicalStaffRequest.jsx'));
+const LandingPage = lazy(() => import('./components/LandingPage.jsx'));
 
 const App = () => {
   const [currentView, setCurrentView] = useState('landing');
@@ -240,44 +242,46 @@ const App = () => {
           </div>
         )}
         
-        {showLogin && (
-          <DoctorLogin 
-            onLogin={handleLogin}
-            onCancel={handleCancelLogin}
-          />
-        )}
-        
-        {showMedicalRequest && (
-          <MedicalStaffRequest
-            onCancel={handleCancelMedicalRequest}
-            onSuccess={handleMedicalRequestSuccess}
-          />
-        )}
-        
-        {currentView === 'landing' ? (
-          <LandingPage 
-            onPatientAccess={handlePatientAccess}
-            onDoctorAccess={showDashboard}
-          />
-        ) : currentView === 'form' ? (
-          <Form 
-            onSubmit={handleFormSubmission}
-            onDoctorAccess={showDashboard}
-            onBackToLanding={showLanding}
-            isLoading={isLoading}
-          />
-        ) : (
-          <Dashboard 
-            submissions={submissions}
-            onBackToForm={showForm}
-            onBackToLanding={showLanding}
-            onLogout={handleLogout}
-            onRefresh={loadPatients}
-            onDeletePatient={handleDeletePatient}
-            user={user}
-            isLoading={isLoading}
-          />
-        )}
+        <Suspense fallback={<LoadingOverlay isVisible={true} message="Loading..." icon="⏳" />}>
+          {showLogin && (
+            <DoctorLogin 
+              onLogin={handleLogin}
+              onCancel={handleCancelLogin}
+            />
+          )}
+          
+          {showMedicalRequest && (
+            <MedicalStaffRequest
+              onCancel={handleCancelMedicalRequest}
+              onSuccess={handleMedicalRequestSuccess}
+            />
+          )}
+          
+          {currentView === 'landing' ? (
+            <LandingPage 
+              onPatientAccess={handlePatientAccess}
+              onDoctorAccess={showDashboard}
+            />
+          ) : currentView === 'form' ? (
+            <Form 
+              onSubmit={handleFormSubmission}
+              onDoctorAccess={showDashboard}
+              onBackToLanding={showLanding}
+              isLoading={isLoading}
+            />
+          ) : (
+            <Dashboard 
+              submissions={submissions}
+              onBackToForm={showForm}
+              onBackToLanding={showLanding}
+              onLogout={handleLogout}
+              onRefresh={loadPatients}
+              onDeletePatient={handleDeletePatient}
+              user={user}
+              isLoading={isLoading}
+            />
+          )}
+        </Suspense>
         
         {/* Loading Overlays */}
         <LoadingOverlay 

@@ -75,24 +75,20 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Trust proxy for Heroku (behind reverse proxy)
+// Trust proxy (for reverse proxies)
 app.set('trust proxy', 1);
 
-// CORS configuration for production
+// CORS configuration
 app.use((req, res, next) => {
   const allowedOrigins = [
     'http://localhost:5173', // Vite dev server
+    'http://localhost:3000', // Alternative dev port
     'https://denniscode1.github.io', // GitHub Pages
-    'https://myspaceer-production.up.railway.app', // Explicit Railway URL
-    process.env.FRONTEND_URL, // Railway/production frontend
-    process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null,
-    'https://*.railway.app', // Railway wildcard
-    'https://*.up.railway.app' // Railway app domains
+    process.env.FRONTEND_URL, // Production frontend URL
   ].filter(Boolean);
   
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin) || 
-      (origin && (origin.includes('railway.app') || origin.includes('up.railway.app')))) {
+  if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   
@@ -156,17 +152,17 @@ const rateLimitMiddleware = (req, res, next) => {
 app.use('/api/medical-staff', authRateLimit);
 app.use('/api/reports', apiRateLimit);
 
-// Initialize enhanced database on server start
-initializeEnhancedDatabase()
+// Database initialization promise (will be awaited before server starts)
+const databaseReady = initializeEnhancedDatabase()
   .then(() => {
-    console.log('Enhanced database initialized');
+    console.log('✅ Enhanced database initialized');
     return seedDefaultData();
   })
   .then(() => {
-    console.log('Default data seeded');
+    console.log('✅ Default data seeded');
   })
   .catch(err => {
-    console.error('Database initialization failed:', err);
+    console.error('❌ Database initialization failed:', err);
     process.exit(1);
   });
 
@@ -1997,22 +1993,25 @@ process.on('SIGINT', () => {
 
 // Only start server if this is the main module (not imported)
 if (import.meta.url === `file://${process.argv[1]}` || process.env.START_SERVER === 'true') {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Enhanced Emergency Triage Server running on port ${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
-    console.log('\n🚨 Emergency Triage System Features:');
-    console.log('   ✅ Automated triage with deterministic rules + ML');
-    console.log('   ✅ Hospital selection with travel time optimization');
-    console.log('   ✅ Priority queue management');
-    console.log('   ✅ Real-time event logging and tracking');
-    console.log('   ✅ Backward compatibility with existing frontend');
-    console.log('\n📋 Key API Endpoints:');
-    console.log('   POST /api/reports - Submit new patient report');
-    console.log('   GET  /api/reports - List all reports with triage data');
-    console.log('   GET  /api/health  - System health and status');
-    console.log('   GET  /api/stats   - System statistics and metrics\n');
+  // Wait for database to be ready before starting server
+  databaseReady.then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`\n🚀 Enhanced Emergency Triage Server running on port ${PORT}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
+      console.log('\n🚨 Emergency Triage System Features:');
+      console.log('   ✅ Automated triage with deterministic rules + ML');
+      console.log('   ✅ Hospital selection with travel time optimization');
+      console.log('   ✅ Priority queue management');
+      console.log('   ✅ Real-time event logging and tracking');
+      console.log('   ✅ Backward compatibility with existing frontend');
+      console.log('\n📋 Key API Endpoints:');
+      console.log('   POST /api/reports - Submit new patient report');
+      console.log('   GET  /api/reports - List all reports with triage data');
+      console.log('   GET  /api/health  - System health and status');
+      console.log('   GET  /api/stats   - System statistics and metrics\n');
+    });
   });
 }
 

@@ -80,7 +80,7 @@ export const clearLocationDisplayPreference = () => {
 };
 
 // For development/debugging - expose functions to manage preferences
-if (process.env.NODE_ENV === 'development') {
+if (import.meta.env.DEV) {
   window.clearLocationPreferences = clearLocationPermissionPreference;
   window.getLocationPreference = getLocationPermissionPreference;
   window.getLocationDisplayPreference = getLocationDisplayPreference;
