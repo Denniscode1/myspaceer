@@ -178,7 +178,7 @@ initializeEnhancedDatabase()
  * POST /api/reports - Submit new patient report (Field Submission)
  * This is the main entry point for EMT or app submissions
  */
-app.post('/api/reports', validatePatientData, handleValidationErrors, async (req, res) => {
+app.post('/api/reports', async (req, res) => {
   const startTime = Date.now();
   
   try {
