@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './ModernDataTable.css';
 
 const ModernDataTable = ({ 
@@ -17,6 +17,14 @@ const ModernDataTable = ({
   setShowFilterModal,
   searchQuery
 }) => {
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  // Reset selected rows when submissions change
+  useEffect(() => {
+    setSelectedRows([]);
+    setSelectAll(false);
+  }, [submissions]);
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -79,26 +87,95 @@ const ModernDataTable = ({
     return Object.values(filters).filter(value => value !== 'all').length;
   };
 
+  // Handle select all checkbox
+  const handleSelectAll = (e) => {
+    const checked = e.target.checked;
+    setSelectAll(checked);
+    if (checked) {
+      setSelectedRows(submissions.map(s => s.id || s.reportId));
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  // Handle individual row checkbox
+  const handleRowSelect = (submissionId) => {
+    setSelectedRows(prev => {
+      if (prev.includes(submissionId)) {
+        const newSelected = prev.filter(id => id !== submissionId);
+        setSelectAll(false);
+        return newSelected;
+      } else {
+        const newSelected = [...prev, submissionId];
+        setSelectAll(newSelected.length === submissions.length);
+        return newSelected;
+      }
+    });
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    if (selectedRows.length === 0) return;
+    
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedRows.length} patient record(s)? This action cannot be undone.`
+    );
+    
+    if (confirmed && onDeletePatient) {
+      // Delete all selected records
+      selectedRows.forEach(id => {
+        onDeletePatient(id);
+      });
+      setSelectedRows([]);
+      setSelectAll(false);
+    }
+  };
+
   if (!submissions || submissions.length === 0) {
     return (
       <div className="modern-table-container">
-        <div className="table-header">
-          <h2>Patient Records</h2>
-          <div className="table-actions">
+      <div className="table-header">
+        <h2>Patient Records</h2>
+        <div className="table-actions">
+          {selectedRows.length > 0 && canDelete && (
             <button 
-              className="export-btn"
-              onClick={() => onExport && onExport('csv')}
-              disabled={true}
+              className="delete-selected-btn"
+              onClick={handleBulkDelete}
+              disabled={isLoading}
+              style={{ 
+                backgroundColor: '#e74c3c', 
+                color: 'white', 
+                marginRight: '8px',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2"/>
-                <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2"/>
-                <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3,6 5,6 21,6" stroke="currentColor" strokeWidth="2"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2"/>
               </svg>
-              Export
+              Delete Selected ({selectedRows.length})
             </button>
-          </div>
+          )}
+          <button 
+            className="export-btn"
+            onClick={() => onExport && onExport('csv')}
+            disabled={true}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2"/>
+              <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2"/>
+              <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+            Export
+          </button>
         </div>
+      </div>
         <div className="empty-state">
           <div className="empty-icon">📋</div>
           <h3>No Patient Records</h3>
@@ -113,6 +190,31 @@ const ModernDataTable = ({
       <div className="table-header">
         <h2>Patient Records</h2>
         <div className="table-actions">
+          {selectedRows.length > 0 && canDelete && (
+            <button 
+              className="delete-selected-btn"
+              onClick={handleBulkDelete}
+              disabled={isLoading}
+              style={{ 
+                backgroundColor: '#e74c3c', 
+                color: 'white', 
+                marginRight: '8px',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3,6 5,6 21,6" stroke="currentColor" strokeWidth="2"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              Delete Selected ({selectedRows.length})
+            </button>
+          )}
           <button 
             className={`filter-btn ${getActiveFilterCount() > 0 ? 'active' : ''}`}
             onClick={() => setShowFilterModal && setShowFilterModal(true)}
@@ -145,7 +247,12 @@ const ModernDataTable = ({
           <thead>
             <tr>
               <th>
-                <input type="checkbox" className="select-all-checkbox" />
+                <input 
+                  type="checkbox" 
+                  className="select-all-checkbox" 
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                />
               </th>
               <th>Patient</th>
               <th>TRN</th>
@@ -162,7 +269,12 @@ const ModernDataTable = ({
             {submissions.map((submission, index) => (
               <tr key={submission.id || index} className="table-row">
                 <td>
-                  <input type="checkbox" className="row-checkbox" />
+                  <input 
+                    type="checkbox" 
+                    className="row-checkbox" 
+                    checked={selectedRows.includes(submission.id || submission.reportId)}
+                    onChange={() => handleRowSelect(submission.id || submission.reportId)}
+                  />
                 </td>
                 <td className="patient-cell">
                   <div className="patient-info">

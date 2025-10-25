@@ -63,6 +63,8 @@ import {
 } from './services/doctorAssignmentService.js';
 import { medicalStaffService } from './services/medicalStaffService.js';
 import { getHospitals } from './database-enhanced.js';
+import { websocketService } from './services/websocketService.js';
+import http from 'http';
 
 // Helper function to get patient contact info
 const getPatientContact = async (reportId) => {
@@ -327,6 +329,18 @@ async function processReportAsync(patientReport) {
           priorityScore
         );
         console.log(`✅ Patient added to queue: position ${queueResult?.position || queueResult?.queue_position || 'unknown'}`);
+        
+        // Emit real-time queue update to hospital staff
+        const hospitalId = selectedHospital.hospital_id || selectedHospital.id;
+        const queueData = await getHospitalQueue(hospitalId);
+        websocketService.emitHospitalQueueUpdate(hospitalId, queueData);
+        websocketService.emitNewPatientArrival(hospitalId, {
+          report_id: patientReport.report_id,
+          name: patientReport.name,
+          criticality: triageResult.criticality,
+          incident_type: patientReport.incident_type,
+          eta: new Date(Date.now() + travelTime * 1000).toISOString()
+        });
       } catch (queueError) {
         console.error(`❌ Failed to add ${patientReport.report_id} to queue:`, queueError);
         // Continue processing even if queue addition fails
@@ -354,6 +368,13 @@ async function processReportAsync(patientReport) {
         
         if (assignment.success) {
           console.log(`✅ Doctor assigned to ${patientReport.report_id}: ${assignment.assigned_doctor.name}`);
+          
+          // Emit real-time doctor assignment notification
+          websocketService.emitDoctorAssignment(patientReport.report_id, {
+            doctor_name: assignment.assigned_doctor.name,
+            doctor_id: assignment.assigned_doctor.doctor_id,
+            specialties: assignment.assigned_doctor.specialties
+          });
         } else {
           console.log(`⚠️ No doctor available for ${patientReport.report_id}: ${assignment.error}`);
         }
@@ -366,6 +387,12 @@ async function processReportAsync(patientReport) {
       try {
         await updateReportStatus(patientReport.report_id, 'Assigned');
         console.log(`✅ Status updated to Assigned for ${patientReport.report_id}`);
+        
+        // Emit real-time status update via WebSocket
+        websocketService.emitStatusUpdate(patientReport.report_id, {
+          status: 'Assigned',
+          assigned_doctor: doctorAssignment.success ? doctorAssignment.assigned_doctor.name : null
+        });
       } catch (statusError) {
         console.error(`❌ Failed to update status for ${patientReport.report_id}:`, statusError);
       }
@@ -392,6 +419,9 @@ async function processReportAsync(patientReport) {
         ]);
         
         console.log(`✅ Patient notifications sent for ${patientReport.report_id}`);
+        
+        // Emit real-time queue position update via WebSocket
+        websocketService.emitQueueUpdate(patientReport.report_id, queueData);
       } catch (notificationError) {
         console.warn(`⚠️ Patient notification failed for ${patientReport.report_id}:`, notificationError.message);
         // Continue - notifications are not critical for core functionality
@@ -1995,15 +2025,23 @@ process.on('SIGINT', () => {
 if (import.meta.url === `file://${process.argv[1]}` || process.env.START_SERVER === 'true') {
   // Wait for database to be ready before starting server
   databaseReady.then(() => {
-    app.listen(PORT, '0.0.0.0', () => {
+    // Create HTTP server from Express app
+    const server = http.createServer(app);
+    
+    // Initialize WebSocket service
+    websocketService.initialize(server);
+    
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`\n🚀 Enhanced Emergency Triage Server running on port ${PORT}`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
       console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
+      console.log(`⚡ WebSocket: ws://localhost:${PORT}`);
       console.log('\n🚨 Emergency Triage System Features:');
       console.log('   ✅ Automated triage with deterministic rules + ML');
       console.log('   ✅ Hospital selection with travel time optimization');
       console.log('   ✅ Priority queue management');
+      console.log('   ✅ Real-time WebSocket updates');
       console.log('   ✅ Real-time event logging and tracking');
       console.log('   ✅ Backward compatibility with existing frontend');
       console.log('\n📋 Key API Endpoints:');
