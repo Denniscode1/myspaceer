@@ -165,7 +165,7 @@ export class EncryptionService {
     if (!data) return null;
     
     switch (type) {
-      case 'email':
+      case 'email': {
         // Show first 2 chars and domain: ab***@example.com
         const [local, domain] = data.split('@');
         if (local && domain) {
@@ -173,6 +173,7 @@ export class EncryptionService {
           return `${masked}@${domain}`;
         }
         return data;
+      }
         
       case 'phone':
         // Show last 4 digits: ***-***-1234

@@ -155,7 +155,7 @@ class GeocodingService {
     const fullPlace = await this.getPlaceName(latitude, longitude);
     
     // If it's coordinates, return as is
-    if (fullPlace.includes(',') && fullPlace.match(/^\-?\d+\.\d+, \-?\d+\.\d+$/)) {
+    if (fullPlace.includes(',') && fullPlace.match(/^-?\d+\.\d+, -?\d+\.\d+$/)) {
       return fullPlace;
     }
     

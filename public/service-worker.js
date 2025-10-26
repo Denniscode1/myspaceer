@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 const CACHE_NAME = 'myspaceer-v1';
 const urlsToCache = [
   '/',

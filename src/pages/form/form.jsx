@@ -99,7 +99,7 @@ const PatientTriageForm = ({ onSubmit, onDoctorAccess, onBackToLanding, isLoadin
       newErrors.contactEmail = 'Please enter a valid email address';
     }
     
-    if (formData.contactPhone && !/^\+?[\d\s\-\(\)]{10,}$/.test(formData.contactPhone)) {
+    if (formData.contactPhone && !/^\+?[\d\s\-()]{10,}$/.test(formData.contactPhone)) {
       newErrors.contactPhone = 'Please enter a valid phone number';
     }
     

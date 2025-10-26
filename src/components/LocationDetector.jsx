@@ -231,7 +231,7 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
         return '❌ Location access denied';
       case 'error':
         return `❌ Location error: ${error}`;
-      case 'success':
+      case 'success': {
         if (geoloadingPlaceName) {
           return '📍 Location detected, getting place name...';
         }
@@ -240,6 +240,7 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
         return locationData?.inJamaica 
           ? `📍 ${placeInfo}${accuracyInfo} 🇯🇲`
           : `📍 ${placeInfo}${accuracyInfo}`;
+      }
       default:
         return '❓ Unknown location status';
     }
