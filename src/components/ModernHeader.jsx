@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
 import './ModernHeader.css';
+import Notification from '../assets/Bell1.png';
+import Refresh from '../assets/RefreshCircle1Clockwise.png';
 
 const ModernHeader = ({ user, onRefresh, isLoading, notifications, onToggleSidebar, searchQuery, onSearchChange }) => {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const unreadCount = notifications?.filter(n => !n.read).length || 0;
+ 
+
+  const refreshBtn = {
+    width: '16px',
+    height: '16px',
+  };
+
 
   return (
     <header className="modern-header">
@@ -47,12 +56,7 @@ const ModernHeader = ({ user, onRefresh, isLoading, notifications, onToggleSideb
             disabled={isLoading}
             title="Refresh Data"
           >
-            <svg className={`refresh-icon ${isLoading ? 'spinning' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M21 3v5h-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M8 21v-5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <img src={Refresh} alt="" style={refreshBtn} />
           </button>
         )}
 
@@ -63,12 +67,10 @@ const ModernHeader = ({ user, onRefresh, isLoading, notifications, onToggleSideb
             onClick={() => setShowNotifications(!showNotifications)}
             title="Notifications"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-            </svg>
+            <img className='bell' src={Notification} alt="" />
+
             {unreadCount > 0 && (
-              <span className="notification-badge">{unreadCount}</span>
+              <span className=" notification-badge"></span>
             )}
           </button>
 
