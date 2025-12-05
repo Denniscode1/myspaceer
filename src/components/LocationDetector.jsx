@@ -57,7 +57,8 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
         speed: position.coords.speed,
         timestamp: position.timestamp,
         source: 'gps',
-        highAccuracy: highAccuracy
+        highAccuracy: highAccuracy,
+        provider: 'html5_geolocation'
       };
 
       setLocationData(locationInfo);
@@ -237,9 +238,10 @@ const LocationDetector = ({ onLocationUpdate, onLocationError }) => {
         }
         const placeInfo = placeName || `${locationData?.latitude.toFixed(4)}, ${locationData?.longitude.toFixed(4)}`;
         const accuracyInfo = locationData?.accuracy ? ` (±${Math.round(locationData.accuracy)}m)` : '';
+        const providerInfo = locationData?.accuracy && locationData.accuracy < 20 ? ' 🗺️' : '';
         return locationData?.inJamaica 
-          ? `📍 ${placeInfo}${accuracyInfo} 🇯🇲`
-          : `📍 ${placeInfo}${accuracyInfo}`;
+          ? `📍 ${placeInfo}${accuracyInfo}${providerInfo} 🇯🇲`
+          : `📍 ${placeInfo}${accuracyInfo}${providerInfo}`;
       }
       default:
         return '❓ Unknown location status';

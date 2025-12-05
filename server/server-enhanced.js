@@ -64,6 +64,7 @@ import {
 import { medicalStaffService } from './services/medicalStaffService.js';
 import { getHospitals } from './database-enhanced.js';
 import { websocketService } from './services/websocketService.js';
+import googleMapsService from './services/googleMapsService.js';
 import http from 'http';
 
 // Helper function to get patient contact info
@@ -1796,6 +1797,165 @@ app.post('/api/complete-treatment', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to complete treatment',
+      details: error.message
+    });
+  }
+});
+
+// ====================
+// GOOGLE MAPS LOCATION API ENDPOINTS
+// ====================
+
+/**
+ * POST /api/location/geocode - Reverse geocode coordinates using Google Maps
+ * Provides high-accuracy place names with ±5-10m precision
+ */
+app.post('/api/location/geocode', async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        error: 'Latitude and longitude are required'
+      });
+    }
+
+    // Check if Google Maps is available
+    if (!googleMapsService.isAvailable()) {
+      return res.status(503).json({
+        success: false,
+        error: 'Google Maps API not configured',
+        message: 'Please configure GOOGLE_MAPS_API_KEY in environment variables'
+      });
+    }
+
+    const geocodeData = await googleMapsService.reverseGeocode(latitude, longitude);
+    
+    res.json({
+      success: true,
+      data: geocodeData,
+      provider: 'google_maps',
+      accuracy_estimate: `±${geocodeData.accuracy}m`
+    });
+    
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Geocoding failed',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/location/directions - Get directions between two points with traffic data
+ */
+app.post('/api/location/directions', async (req, res) => {
+  try {
+    const { origin, destination, mode } = req.body;
+    
+    if (!origin || !destination) {
+      return res.status(400).json({
+        success: false,
+        error: 'Origin and destination are required'
+      });
+    }
+
+    if (!googleMapsService.isAvailable()) {
+      return res.status(503).json({
+        success: false,
+        error: 'Google Maps API not configured'
+      });
+    }
+
+    const directions = await googleMapsService.getDirections(
+      origin,
+      destination,
+      mode || 'driving'
+    );
+    
+    res.json({
+      success: true,
+      data: directions,
+      provider: 'google_maps'
+    });
+    
+  } catch (error) {
+    console.error('Directions error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get directions',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/hospitals/nearest-google - Find nearest hospital using Google Maps Distance Matrix
+ * Provides real-time traffic-aware routing to closest hospital
+ */
+app.post('/api/hospitals/nearest-google', async (req, res) => {
+  try {
+    const { latitude, longitude, mode } = req.body;
+    
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        error: 'Latitude and longitude are required'
+      });
+    }
+
+    if (!googleMapsService.isAvailable()) {
+      return res.status(503).json({
+        success: false,
+        error: 'Google Maps API not configured',
+        message: 'Falling back to Haversine distance calculation'
+      });
+    }
+
+    const hospitals = await getHospitals();
+    const hospitalRoutes = await googleMapsService.getDistanceMatrix(
+      { lat: latitude, lng: longitude },
+      hospitals.map(h => ({
+        lat: h.latitude,
+        lng: h.longitude,
+        hospital_id: h.hospital_id,
+        name: h.name,
+        ...h
+      })),
+      mode || 'driving'
+    );
+
+    if (!hospitalRoutes || hospitalRoutes.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'No routes found to hospitals'
+      });
+    }
+
+    // Sort by travel time with traffic
+    const sortedHospitals = hospitalRoutes.sort(
+      (a, b) => a.duration_in_traffic_seconds - b.duration_in_traffic_seconds
+    );
+
+    res.json({
+      success: true,
+      data: {
+        nearest_hospital: sortedHospitals[0],
+        top_5_hospitals: sortedHospitals.slice(0, 5),
+        total_hospitals: sortedHospitals.length
+      },
+      provider: 'google_maps',
+      calculation_method: 'distance_matrix_with_traffic'
+    });
+    
+  } catch (error) {
+    console.error('Hospital routing error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to find nearest hospital',
       details: error.message
     });
   }

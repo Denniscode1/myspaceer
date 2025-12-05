@@ -1,21 +1,99 @@
 /**
  * Geocoding Service
  * Converts latitude/longitude coordinates to readable place names
+ * Uses Google Maps API for high accuracy, with OpenStreetMap fallback
  */
 
 class GeocodingService {
   constructor() {
     this.cache = new Map();
     this.cacheTimeout = 60 * 60 * 1000; // 1 hour cache
+    this.googleMapsEnabled = false;
+    this.apiBaseUrl = 'http://localhost:3001/api'; // Backend API
   }
 
   /**
-   * Get place name from coordinates using OpenStreetMap Nominatim API (free)
+   * Get place name from coordinates
+   * Tries Google Maps API first, falls back to OpenStreetMap
    * @param {number} latitude - Latitude coordinate
    * @param {number} longitude - Longitude coordinate
    * @returns {Promise<string>} Place name or coordinates as fallback
    */
   async getPlaceName(latitude, longitude) {
+    // Try Google Maps API first if available
+    try {
+      const googleResult = await this.getPlaceNameFromGoogle(latitude, longitude);
+      if (googleResult) {
+        return googleResult;
+      }
+    } catch (error) {
+      console.log('Google Maps API unavailable, falling back to OpenStreetMap:', error.message);
+    }
+
+    // Fallback to OpenStreetMap
+    return this.getPlaceNameFromOSM(latitude, longitude);
+  }
+
+  /**
+   * Get place name using Google Maps API (via backend)
+   * @param {number} latitude - Latitude coordinate
+   * @param {number} longitude - Longitude coordinate
+   * @returns {Promise<string>} Place name from Google Maps
+   */
+  async getPlaceNameFromGoogle(latitude, longitude) {
+    const cacheKey = `google_${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+    
+    // Check cache first
+    const cached = this.cache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < this.cacheTimeout) {
+      return cached.placeName;
+    }
+
+    try {
+      const response = await fetch(
+        `${this.apiBaseUrl}/location/geocode`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ latitude, longitude })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Google Maps geocoding failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.success || !data.data) {
+        throw new Error('No geocoding data returned');
+      }
+
+      const placeName = data.data.formatted_address || data.data.short_name;
+      
+      // Cache the result
+      this.cache.set(cacheKey, {
+        placeName,
+        timestamp: Date.now()
+      });
+
+      return placeName;
+
+    } catch (error) {
+      console.error('Google Maps geocoding error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get place name from coordinates using OpenStreetMap Nominatim API (fallback)
+   * @param {number} latitude - Latitude coordinate
+   * @param {number} longitude - Longitude coordinate
+   * @returns {Promise<string>} Place name or coordinates as fallback
+   */
+  async getPlaceNameFromOSM(latitude, longitude) {
     // Create cache key
     const cacheKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
     

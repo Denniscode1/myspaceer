@@ -1,26 +1,31 @@
 import { getHospitals, logEvent } from '../database-enhanced.js';
+import googleMapsService from './googleMapsService.js';
 
 /**
  * Jamaica Hospital Selection Service
  * Automatically selects the nearest appropriate hospital based on location and medical needs
+ * Uses Google Maps Distance Matrix API for accurate, traffic-aware routing
  */
 export class HospitalSelector {
   constructor() {
     this.jamaicaHospitals = [];
+    this.useGoogleMaps = false;
     this.initialize();
   }
 
   async initialize() {
     try {
       this.jamaicaHospitals = await getHospitals();
+      this.useGoogleMaps = googleMapsService.isAvailable();
       console.log(`Hospital Selector initialized with ${this.jamaicaHospitals.length} Jamaica hospitals`);
+      console.log(`Google Maps integration: ${this.useGoogleMaps ? 'ENABLED ✓' : 'DISABLED (using fallback methods)'}`);
     } catch (error) {
       console.error('Failed to initialize hospital selector:', error);
     }
   }
 
   /**
-   * Select the nearest hospital by distance only
+   * Select the nearest hospital using Google Maps or fallback methods
    */
   async selectNearestHospital(reportData) {
     const { report_id, latitude, longitude } = reportData;
@@ -30,31 +35,61 @@ export class HospitalSelector {
     }
 
     try {
-      // Calculate distances to all hospitals
-      const hospitalDistances = this.jamaicaHospitals.map(hospital => ({
-        ...hospital,
-        distance: this.calculateDistance(
-          latitude, 
-          longitude, 
-          hospital.latitude, 
-          hospital.longitude
-        ),
-        travelTime: this.estimateTravelTime(
-          latitude, 
-          longitude, 
-          hospital.latitude, 
-          hospital.longitude,
-          reportData.transportation_mode
-        )
-      }));
+      let sortedHospitals;
+      let selectionMethod;
 
-      // Sort by distance only (closest first) - STRICT DISTANCE PRIORITY
-      const sortedHospitals = hospitalDistances.sort((a, b) => a.distance - b.distance);
+      // Try Google Maps Distance Matrix API for accurate, traffic-aware routing
+      if (this.useGoogleMaps) {
+        try {
+          console.log('🗺️ Using Google Maps Distance Matrix API for accurate routing...');
+          const hospitalRoutes = await googleMapsService.getDistanceMatrix(
+            { lat: latitude, lng: longitude },
+            this.jamaicaHospitals.map(h => ({
+              lat: h.latitude,
+              lng: h.longitude,
+              hospital_id: h.hospital_id,
+              name: h.name,
+              ...h
+            })),
+            'driving'
+          );
+
+          if (hospitalRoutes && hospitalRoutes.length > 0) {
+            // Sort by actual travel time with traffic
+            sortedHospitals = hospitalRoutes.sort((a, b) => 
+              a.duration_in_traffic_seconds - b.duration_in_traffic_seconds
+            ).map(route => ({
+              ...route.hospital,
+              distance: route.distance_meters / 1000, // Convert to km
+              travelTime: Math.round(route.duration_in_traffic_seconds / 60), // Convert to minutes
+              travelTimeText: route.duration_in_traffic_text,
+              distanceText: route.distance_text,
+              trafficFactor: route.traffic_factor,
+              provider: 'google_maps'
+            }));
+            selectionMethod = 'google_maps_distance_matrix';
+            console.log('✓ Google Maps routing successful');
+          } else {
+            throw new Error('No valid routes from Google Maps');
+          }
+        } catch (googleError) {
+          console.warn('Google Maps routing failed, falling back to Haversine:', googleError.message);
+          sortedHospitals = this.calculateDistancesWithHaversine(reportData);
+          selectionMethod = 'haversine_fallback';
+        }
+      } else {
+        // Fallback: Use Haversine formula for straight-line distance
+        console.log('📐 Using Haversine formula (Google Maps not configured)');
+        sortedHospitals = this.calculateDistancesWithHaversine(reportData);
+        selectionMethod = 'haversine_distance';
+      }
 
       // Log top 3 closest hospitals for debugging
       console.log(`🏥 Top 3 closest hospitals to ${latitude.toFixed(4)}, ${longitude.toFixed(4)}:`);
       sortedHospitals.slice(0, 3).forEach((h, idx) => {
-        console.log(`   ${idx + 1}. ${h.name} - ${h.distance.toFixed(2)}km (${h.travelTime} min)`);
+        const providerIcon = h.provider === 'google_maps' ? '🗺️' : '📐';
+        const trafficInfo = h.trafficFactor ? ` (traffic: ${h.trafficFactor.toFixed(2)}x)` : '';
+        console.log(`   ${idx + 1}. ${h.name} - ${h.distance.toFixed(2)}km (${h.travelTime} min${trafficInfo}) ${providerIcon}`);
       });
 
       // Select the closest hospital - NO OVERRIDES
@@ -65,21 +100,58 @@ export class HospitalSelector {
         hospital_name: closestHospital.name,
         distance_km: closestHospital.distance,
         travel_time_minutes: closestHospital.travelTime,
-        selection_method: 'strict_nearest_distance',
+        selection_method: selectionMethod,
+        provider: closestHospital.provider || 'haversine',
+        traffic_factor: closestHospital.trafficFactor,
         patient_location: { latitude, longitude }
       });
 
-      console.log(`✅ Selected: ${closestHospital.name} (${closestHospital.distance.toFixed(2)}km)`);
+      const methodLabel = selectionMethod === 'google_maps_distance_matrix' ? '(Google Maps 🗺️)' : '(Haversine 📐)';
+      console.log(`✅ Selected: ${closestHospital.name} (${closestHospital.distance.toFixed(2)}km) ${methodLabel}`);
+
+      const distanceInfo = closestHospital.distanceText || `${closestHospital.distance.toFixed(2)} km`;
+      const timeInfo = closestHospital.travelTimeText || `${closestHospital.travelTime} min`;
+      const accuracyInfo = closestHospital.provider === 'google_maps' ? ' with real-time traffic data' : '';
 
       return {
         selected_hospital: closestHospital,
-        selection_reason: `Closest hospital at ${closestHospital.distance.toFixed(2)} km away (${closestHospital.travelTime} min travel time)`
+        selection_reason: `Closest hospital at ${distanceInfo} away (${timeInfo} travel time${accuracyInfo})`,
+        selection_method: selectionMethod,
+        provider: closestHospital.provider || 'haversine'
       };
 
     } catch (error) {
       console.error('Hospital selection failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Calculate distances to all hospitals using Haversine formula (fallback method)
+   */
+  calculateDistancesWithHaversine(reportData) {
+    const { latitude, longitude } = reportData;
+    
+    const hospitalDistances = this.jamaicaHospitals.map(hospital => ({
+      ...hospital,
+      distance: this.calculateDistance(
+        latitude, 
+        longitude, 
+        hospital.latitude, 
+        hospital.longitude
+      ),
+      travelTime: this.estimateTravelTime(
+        latitude, 
+        longitude, 
+        hospital.latitude, 
+        hospital.longitude,
+        reportData.transportation_mode
+      ),
+      provider: 'haversine'
+    }));
+
+    // Sort by distance (closest first)
+    return hospitalDistances.sort((a, b) => a.distance - b.distance);
   }
 
   /**
